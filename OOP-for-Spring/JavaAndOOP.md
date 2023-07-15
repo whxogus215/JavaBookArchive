@@ -44,6 +44,8 @@
 우리는 각자의 로컬 컴퓨터에서 각 OS에 맞는 JVM을 사용해 소스코드를 개발한다. 그리고 이것이 배포가 되면 다른 로컬 컴퓨터에서 다른 OS일지라도 각기 다른 JVM 및 JRE를 통해 같은 소스코드를
 실행할 수 있는 것이다.
 
+![001](https://github.com/whxogus215/JavaBookArchive/assets/70999462/e5b5dddd-20b6-4b2c-9854-26a110518e1e)
+
 ### 자바를 이해하기 위한 메모리 구조
 자바 프로그램이 메모리를 사용할 때는 코드 영역과 데이터 저장 영역으로 나눈다. 이 때 **데이터 저장 영역은 크게 스태틱 영역, 스택 영역, 힙 영역으로 나뉜다.**
 자바의 main 메서드가 실행되기 위해서는 먼저 JRE가 main 메서드를 확인한다. 그리고 프로그램을 실행하기 위한 사전 준비에 들어간다. 먼저, JVM을 부팅하고 컴파일러를 통해 받은 목적 파일을 실행한다.
@@ -52,9 +54,16 @@
 클래스들의 놀이터이다.** 이제 모든 전처리 과정이 끝났고, 본격적으로 main 메서드가 실행되면, 이제는 스태틱 영역이 아닌 스택 영역에 main 메서드의 스택 프레임이 할당된다. **즉, 스택 영역은
 메서드들의 놀이터이다.** 메서드 단위별로 스택 영역에 프레임 단위로 할당된다. 블럭의 시작(`{`)과 끝(`}`)으로 구분할 수 있다.
 
+![003](https://github.com/whxogus215/JavaBookArchive/assets/70999462/f00d8ab6-b197-44b2-8a64-bc11db484c02)
+
+![009](https://github.com/whxogus215/JavaBookArchive/assets/70999462/62063927-5cd4-4345-9b3a-40717d140503)
+
 ### 블록을 통해 구분되는 지역변수
 우리는 main 메서드 내에서 다양한 블럭들을 생성하게 된다. 특히, 제어문(조건문, 반복문)의 경우 다양한 블럭 단위로 실행된다. 이 떄 블럭 내에서 생성하는 변수들은 해당 블럭이 종료되면 메모리에서 사라진다.
 만약, main 메서드 내에서 if문이 실행된다면 스택 영역에 있는 main 스택 프레임이 생성되고, 그 안에 if문 스택 프레임이 생성되는 것이다. 그리고 if문의 블럭 끝인 `}`을 만나면 해당 if문에 있는 변수들은 소멸된다.
+
+![AnyConv com__020](https://github.com/whxogus215/JavaBookArchive/assets/70999462/f0322566-f7fc-4697-8b68-e1d38cc04f94)
+![AnyConv com__023](https://github.com/whxogus215/JavaBookArchive/assets/70999462/feefc438-19af-432a-9d2d-912f936f31d1)
 
 이처럼 **지역 변수는 스택 영역 내에 있는 스택 프레임 안에서만 생명 주기를 갖는다. 그에 반면에 스태틱 영역에 존재하는 클래스 멤버 변수들은 JVM이 종료될 때까지 메모리에 존재한다.**
 
@@ -83,6 +92,10 @@ public class Start4 {
 따라서 main 메서드 내에서 선언된 k와 square 메서드 내에서 생성된 k는 전혀 다른 것이다. main 메서드 내에서 전달한 k 값의 경우, 그저 값만 넘겨주는 것이므로, **이를 Call By Value라고 한다.
 메서드를 호출하면서 인자로 전달되는 것은 변수 자체가 아니라 변수가 저장한 값만을 복제해서 전달하는 것이다.**
 
+![AnyConv com__030](https://github.com/whxogus215/JavaBookArchive/assets/70999462/5322272b-60c8-4713-abfc-168fcaa89f91)
+
+![AnyConv com__032](https://github.com/whxogus215/JavaBookArchive/assets/70999462/d5969007-2afa-43fe-bd66-5afd30bc7d19)
+
 ### 전역변수의 사용을 지양할 것
 두 메서드 사이에 값을 전달하기 위해 메서드를 호출할 때 전역변수를 사용하여 값을 공유할 수 있다. 
 ```java
@@ -102,6 +115,8 @@ public class Start5 {
   }
 }
 ```
+![AnyConv com__038](https://github.com/whxogus215/JavaBookArchive/assets/70999462/18dd7acc-b383-4720-800e-2f72d5425877)
+
 이처럼 `share`라는 static 변수가 존재할 때, 메모리의 변화는 어떻게 될까? 먼저 스태틱 영역에 클래스에 관한 것들이 로딩된 후, `share`라는 변수도 스태틱 영역에 할당된다.
 그리고 main 메서드 프레임과 square 메서드 프레임이 각각 스택 영역에 할당된다. main 메서드와 square 메서드는 서로 전역 변수인 `share`에 접근하고 있는데, 이로 인해 초기 값이 10이었던
 `share` 변수가 최종적으로는 80으로 변경된다.
@@ -116,6 +131,10 @@ public class Start5 {
 
 - 멀티 프로세스 : 서로의 영역을 침범할 수 없기 때문에 안전한 구조이지만, 메모리 사용량이 많다.
 - 멀티 스레드 : 힙과 스태틱 영역은 공유하지만 서로의 스택 영역은 접근할 수 없다. 따라서 메모리 사용량이 적다.
+
+![AnyConv com__040](https://github.com/whxogus215/JavaBookArchive/assets/70999462/fa08044f-8226-4b95-9cc7-28c18ce844e9)
+
+![AnyConv com__041](https://github.com/whxogus215/JavaBookArchive/assets/70999462/ec6cd111-d774-40a1-85b6-a8bf17bc9f8a)
 
 스프링 MVC1을 배우면서 서블릿은 요청마다 스레드를 생성해서 처리한다라고 배웠다. **이처럼 요청마다 프로세스를 생성하는 것이 아닌 공유 자원을 활용해 다중 스레드를 지원하는 것이
 보다 메모리를 효율적으로 사용하는 방법임을 알 수 있다.**

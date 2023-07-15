@@ -165,6 +165,8 @@ public class Start5 {
 자바 프로그래밍에서 혼동하지 않게 된다. **우리가 실제로 자바에서 실행하는 많은 기능들은 클래스를 기반으로 생성된 객체 덕분이지 클래스 그 자체만으로 존재할 수는 없는 것이다.** (물론, 객체를 생성하지 않고 변수나 메서드를 사용하는
 방법도 존재하긴 한다. - static)
 
+![AnyConv com__002](https://github.com/whxogus215/JavaBookArchive/assets/70999462/ba8bfda6-84d3-4758-ac6e-4c094f0ecf86)
+
 ### 추상화: 모델링
 **객체 지향의 추상화는 곧 모델링이다.** 추상화란 구체적인 것을 분해해서 관심있는 특성만 가지고 재조합하는 것이다. 우리는 구현하고자 하는 것을 하나의 클래스로 모델링, 추상화하게 되는데 여기서 클래스는 특정 객체를 통칭할 수 있는
 집합적 개념(분류)이다. 그리고 클래스를 통해 생성된 객체에 대해 **인스턴스**라는 표현을 더 자주 사용한다. 우리가 클래스를 설계할 때는 UML 다이어그램을 보통 사용한다. 여기에는 해당 클래스가 갖는 여러 속성들이 정의된다.
@@ -175,6 +177,8 @@ public class Start5 {
 
 **추상화란 구체적인 것을 분해해서 관심영역(애플리케이션 경계)에 있는 특성만 가지고 재조합하는 것 = 모델링**
 
+![AnyConv com__006](https://github.com/whxogus215/JavaBookArchive/assets/70999462/e9dcc877-3951-4903-9bb6-97820bb76340)
+
 모델링한 클래스가 실제 코드로 동작할 때 메모리에서는 어떤 일이 벌어질까? 일단 클래스들의 놀이터인 스태틱 영역에 해당하는 클래스가 다 로딩된다. 만약, 이 때 인스턴스 멤버가 있을 경우 해당 변수들은 스태틱 영역에 저장공간을 갖지 않는다.
 이들은 객체가 생성되어야 존재하는 영역이기 때문에 스태틱이 아닌 힙 영역에서 동적으로 생성되기 때문이다. 객체 생성에 따른 메모리의 변화는 해당 책을 참고하는 것이 더 낫다고 생각해서 중요한 포인트만 적도록 하겠다.
 
@@ -182,10 +186,20 @@ public class Start5 {
 `mickey`라는 참조 변수에 대입하였다. 이제부터는 `mickey`라는 변수를 통해 해당 객체에 접근할 수 있다. 이 후에 `mickey = null`로 하면 해당 참조변수는 생성된 객체를 참조하지 않는다. 그러면 가비지 컬렉터가 해당 인스턴스를 힙 영역에서
 제거한다. 
 
+![AnyConv com__008](https://github.com/whxogus215/JavaBookArchive/assets/70999462/e1806ce1-e782-41b0-9815-5fa7d9c56807)
+
+![AnyConv com__011](https://github.com/whxogus215/JavaBookArchive/assets/70999462/e7eedd15-2749-4558-af5f-77dd7c23014a)
+
+![AnyConv com__016](https://github.com/whxogus215/JavaBookArchive/assets/70999462/d48ac7be-d0aa-4cea-9844-7a352b4a8af8)
+
 #### static을 사용하는 법 : 클래스 멤버 변수
 우리가 사람이라는 클래스를 설계한다면, 해당 클래스로 생성된 객체들이 갖는 공통적인 특성이 분명 존재한다. 바로 눈의 개수, 귀의 개수, 팔다리의 개수 등등 인간으로서 갖는 공통적인 성질이 존재한다. 힙 영역에 생성된 여러 사람 인스턴스들이
 똑같은 값들을 담는 변수를 여러 공간 생성해 놓는다면 이는 매우 비효율적이다. 즉, 객체마다 공통으로 갖는 특성을 클래스 멤버로 분류하는 것인데 이 때 `static`을 사용한다. 그러면 해당 객체를 생성하지 않고도 클래스 멤버에 접근할 수 있다.
 main 메서드가 `public static`인 이유도 여기에 있다. JVM 구동 시 스태틱 영역에 바로 배치되는 것이 클래스 및 static 변수/메서드인데, main 메서드는 특정 객체 생성과 관계없이 실행될 수 있어야 하기 때문이다.
+
+![AnyConv com__020](https://github.com/whxogus215/JavaBookArchive/assets/70999462/a8700335-7287-4578-8b02-d4a711325d79)
+
+![AnyConv com__021](https://github.com/whxogus215/JavaBookArchive/assets/70999462/f15660b7-469a-4564-a3a0-2bc537d4a488)
 
 따라서 클래스 멤버 변수의 경우, 스태틱 영역에서 클래스가 로딩될 때 저장공간도 같이 생긴다. 반면에 인스턴스 멤버의 경우는 생성되지 않는다. 지역변수는 사용자가 초기화 하지 않으면 쓰레기 값을 갖는다고 하였다. 하지만 클래스 변수 및 인스턴스 변수는 여러 메서드 혹은 객체가 공유하는 변수들이다. 따라서 이들을 누가 초기화할지 정하지 않고 자동으로 초기화하도록 설정되어 있다. 
 
@@ -198,8 +212,14 @@ main 메서드가 `public static`인 이유도 여기에 있다. JVM 구동 시 
 상위 클래스가 동물이고, 하위 클래스가 포유류일 때, 동물이 포유류의 부모 개념이 아닌 것이다. 포유류는 동물을 좀 더 세분화하고 구체화한 개념(클래스)인 것이다. 동물이 가지고 있는 특성과 함께
 포유류로써 갖는 특성을 추가하여 **확장(extends)**하는 것이다. 즉, 기존의 코드를 재사용하면서 확장하는 것이 상속의 주된 기능인 것이다.
 
+![AnyConv com__024](https://github.com/whxogus215/JavaBookArchive/assets/70999462/c23dfa29-d325-4862-ac5d-e284a688a6cf)
+
 **상위 클래스로 갈수록 추상화, 일반화됐다고 하며, 하위 클래스로 갈수록 구체화, 특수화 됐다고 말한다.** 상속관계에서 반드시 만족하는 문장이 있는데, 바로 **하위 클래스는 상위 클래스다.**
 클래스 계층도가 동물<-포유류<-고래 일때, 포유류는 동물이다, 고래는 포유류다, 고래는 동물이다. 모두 말이 된다.
+
+![AnyConv com__025](https://github.com/whxogus215/JavaBookArchive/assets/70999462/c6dc7f8e-8916-4d1e-affc-86b33e463bc5)
+
+![AnyConv com__026](https://github.com/whxogus215/JavaBookArchive/assets/70999462/a80afbae-3b49-4eb9-8be0-f25b1a0ba035)
 
 #### 객체 이름 명명 시 주의사항
 클래스 이름은 클래스 답게, 객체 이름은 객체 답게 이름을 지어야 한다. 만약 Bird라는 클래스가 있다면 이를 바탕으로 생성되는 객체 명은 aBird, theBird 등이어야 한다.
@@ -223,9 +243,17 @@ main 메서드가 `public static`인 이유도 여기에 있다. JVM 구동 시 
 인터페이스는 보통 **~할 수 있는, be able to**의 의미를 갖고 있다. 실제로 자바 인터페이스 중에서는 `able`이 붙은 인터페이스가 많다. (ex. Comparable, Runnable)
 상속과는 다르게 특정 클래스들이 공통적으로 갖는 부분을 인터페이스로 묶어주면, 유지 보수에 용이하며 확장성 있는 코드를 만들 수 있다.
 
+![AnyConv com__026](https://github.com/whxogus215/JavaBookArchive/assets/70999462/a80afbae-3b49-4eb9-8be0-f25b1a0ba035)
+
+![AnyConv com__029](https://github.com/whxogus215/JavaBookArchive/assets/70999462/87564503-3fa0-42e9-8cfa-a182eff56ac3)
+
 #### 상속과 메모리
 만약, 동물이라는 클래스와 포유류라는 클래스가 있고, 포유류의 상위 클래스가 동물 클래스라고 하자. 이 때, 포유류 객체를 생성한다면 힙 영역에는 동물 클래스와 포유류 클래스가 같이 생성된다.
 즉, 상위 클래스 인스턴스와 하위 클래스 인스턴스가 같이 생기는 것이다. 물론 최상위 클래스인 Object 클래스의 인스턴스도 함께 생성된다.
+
+![AnyConv com__030](https://github.com/whxogus215/JavaBookArchive/assets/70999462/8594f7ca-8462-433b-8bed-3c4cdcc7e004)
+
+![AnyConv com__031](https://github.com/whxogus215/JavaBookArchive/assets/70999462/1cdcbabb-f8a9-4677-b640-6f9304de7636)
 
 ### 다형성: 사용편의성
 보통 다형성이라고 하면 상위 클래스와 하위 클래스에 관한 걸 얘기하지만, 이 책에서는 오버로딩과 오버라이딩을 객체 지향의 다형성이라 이야기하고 있다.
@@ -269,6 +297,22 @@ public static void main(String[] args) {
 오버라이딩의 경우, **아무리 부모 타입의 참조변수를 사용했다고 하더라도 실제 인스턴스 타입의 메서드가 호출된다.** 물론 상위 클래스 타입의 참조변수를 사용하면, 하위 클래스의 멤버를 호출할 수는 없다.
 하지만 **오버라이딩의 경우엔 상위 클래스든 하위 클래스든 어쨌든 메서드가 반드시 존재한다. (상위 클래스의 메서드를 하위 클래스가 재정의하는 것이기 때문에 둘 다 같은 메서드가 있을 수 밖에 없다.)**
 따라서 오버라이딩의 경우에는 실제 인스턴스 타입의 메서드가 호출되는 것이다. (오버라이딩에 의해 상위 클래스의 메서드가 가려졌다고 이해하기)
+
+```java
+class Animal
+class Penguin extends Animal
+
+Penguin pororo = new Penguin();
+Animal pingu = new Penguin();
+```
+
+![AnyConv com__034](https://github.com/whxogus215/JavaBookArchive/assets/70999462/ce4df669-74ae-429d-9cd1-4c9379131619)
+
+![AnyConv com__035](https://github.com/whxogus215/JavaBookArchive/assets/70999462/75a21e0b-d2f8-426f-a428-11c5b2b0e8a8)
+
+**만약 `Animal pororo = new Animal();` 이었다면, 힙 영역에 Penguin 인스턴스는 생성되지 않았을 것이다. 따라서 이 때는 `showName()`이 Animal의 `showName()`이 호출될 것이다.**
+다만 `Animal pororo = new Penguin();` 이나 `Penguin pororo = new Penguin();`일 경우엔 Animal과 Penguin 인스턴스가 같이 힙 영역에 생성된다. **따라서 이 때는 오버라이딩 된 Penguin의 `showName()`에 의해
+기존 Animal의 `showName()`이 가려지게 된다.** 따라서 이 때는 Penguin의 `showName()`이 호출되는 것이다.
 
 그렇다면 이 점을 활용하여 우리는 상위 클래스 타입으로 참조변수를 사용하여, 여러 하위 클래스 타입의 메서드들을 호출할 수 있을 것이다.
 ```java

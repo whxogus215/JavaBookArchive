@@ -5,7 +5,7 @@
   - [쓰레드의 실행 - start()](#쓰레드의-실행---start--)
   - [start()와 run()](#start---와-run--)
   - [싱글쓰레드와 멀티쓰레드](#싱글쓰레드와-멀티쓰레드)
-  - [쓰레드의 I/O 블랔킹](#쓰레드의-io-블락킹)
+  - [쓰레드의 I/O 블락킹](#쓰레드의-io-블락킹)
 
     
 출처 : [https://github.com/castello/javajungsuk_basic](https://github.com/castello/javajungsuk_basic)

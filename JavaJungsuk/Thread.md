@@ -6,6 +6,8 @@
   - [start()와 run()](#start---와-run--)
   - [싱글쓰레드와 멀티쓰레드](#싱글쓰레드와-멀티쓰레드)
   - [쓰레드의 I/O 블락킹](#쓰레드의-io-블락킹)
+- [쓰레드의 우선순위](#쓰레드의-우선순위)
+- [쓰레드 그룹](#쓰레드-그룹)
 
     
 출처 : [https://github.com/castello/javajungsuk_basic](https://github.com/castello/javajungsuk_basic)
@@ -263,6 +265,51 @@ class ThreadPrac extends Thread {
 ```
 이처럼 다른 쓰레드를 생성한 뒤, 실행시키면 입력받는 작업과는 별개로 새로 생성한 쓰레드가 작업을 진행한다. 그리고 기존에 main 메서드에 있는 출력문은 입력받는 작업이 다 끝나야 출력을 시작한다.
 
+### 쓰레드의 우선순위
+쓰레드는 우선순위라는 속성(멤버 변수)을 가지고 있는데, 이 우선순위 값에 따라 쓰레드가 얻는 실행시간이 달라진다. 쓰레드가 수행하는 작업의 중요도에 따라 우선순위를 결정하여 작업시간을 결정할 수 있다.
+**사용자에게 빠르게 반응해야 하는 작업을 하는 쓰레드는 우선순위가 비교적 높아야 할 것이다.**
+```java
+class Thread implements Runnable {
+    /* Make sure registerNatives is the first thing <clinit> does. */
+    private static native void registerNatives();
+    static {
+        registerNatives();
+    }
 
+    private volatile String name;
+    // 자바의 쓰레드는 우선순위를 멤버로 갖는다. 
+    private int priority;
 
+    /* Whether or not the thread is a daemon thread. */
+    private boolean daemon = false;
+	...
+}
+```
+- `void setPriority(int newPriority)` : 쓰레드의 우선순위를 지정한 값으로 변경한다.
+- `int getPriority()` : 쓰레드의 우선순위를 반환한다.
+```java
+    /**
+     * The minimum priority that a thread can have.
+     */
+    public static final int MIN_PRIORITY = 1;
 
+   /**
+     * The default priority that is assigned to a thread.
+     */
+    public static final int NORM_PRIORITY = 5;
+
+    /**
+     * The maximum priority that a thread can have.
+     */
+    public static final int MAX_PRIORITY = 10;	// 숫자가 높을수록 우선순위가 높다.
+```
+- main 메서드를 수행하는 쓰레드의 경우, 우선순위가 5이다. 따라서 main 메서드 내에서 생성하는 쓰레드는 우선순위가 자동적으로 5가 된다.
+
+쓰레드의 우선순위는 해당 OS의 스케쥴링에 따라서 그리고 멀티 코어 환경의 경우, 제대로 반영이 안될 수도 있다. 쓰레드는 OS에 종속적인 요소이기 때문에 예측하기가 어렵다. 매 실행마다 달라질 수 있기 때문이다.
+
+### 쓰레드 그룹
+쓰레드 그룹은 서로 관련된 쓰레드를 그룹으로 다루기 위한 기능이다. 쓰레드 그룹은 **보안상의 이유로 도입된 개념이다.** 따라서 자신이 속한 쓰레드 그룹이나 하위 쓰레드 그룹은 변경할 수 있지만
+다른 쓰레드 그룹의 쓰레드를 변경할 수는 없다. 모든 쓰레드는 반드시 쓰레드 그룹에 포함되어야 있어야 하기 때문에 그룹을 지정하지 않으면 자신을 생성한 쓰레드와 같은 쓰레드 그룹에 자동으로 속하게 된다.
+
+자바 어플리케이션이 실행되면, JVM은 main과 system이라는 쓰레드 그룹을 만들고, JVM 운영에 필요한 쓰레드들을 생성해서 이 쓰레드 그룹에 포함시킨다. main 메서드를 수행하는 main이라는 이름의 쓰레드는 main 쓰레드 그룹에
+포함되며, GC를 수행하는 Finalizer 쓰레드는 system 쓰레드 그룹에 속한다. 따라서 사용자가 생성하는 쓰레드는 모두 main 쓰레드 그룹의 하위 쓰레드 그룹이 되며, 지정하지 않아도 자동으로 main 쓰레드 그룹에 포함된다.

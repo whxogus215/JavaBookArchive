@@ -8,6 +8,15 @@
   - [쓰레드의 I/O 블락킹](#쓰레드의-io-블락킹)
 - [쓰레드의 우선순위](#쓰레드의-우선순위)
 - [쓰레드 그룹](#쓰레드-그룹)
+- [데몬 쓰레드](#데몬-쓰레드)
+- [쓰레드의 상태](#쓰레드의-상태)
+- [쓰레드의 실행제어](#쓰레드의-실행제어)
+  - [sleep()](#sleep--)
+  - [interrupt()](#interrupt--)
+  - [join() & yield()]
+- [쓰레드의 동기화]
+  - [synchronized를 이용한 동기화]
+  - [wait() & notify()]  
 
     
 출처 : [https://github.com/castello/javajungsuk_basic](https://github.com/castello/javajungsuk_basic)
@@ -313,3 +322,148 @@ class Thread implements Runnable {
 
 자바 어플리케이션이 실행되면, JVM은 main과 system이라는 쓰레드 그룹을 만들고, JVM 운영에 필요한 쓰레드들을 생성해서 이 쓰레드 그룹에 포함시킨다. main 메서드를 수행하는 main이라는 이름의 쓰레드는 main 쓰레드 그룹에
 포함되며, GC를 수행하는 Finalizer 쓰레드는 system 쓰레드 그룹에 속한다. 따라서 사용자가 생성하는 쓰레드는 모두 main 쓰레드 그룹의 하위 쓰레드 그룹이 되며, 지정하지 않아도 자동으로 main 쓰레드 그룹에 포함된다.
+
+### 데몬 쓰레드
+데몬 쓰레드는 일반 쓰레드의 작업을 돕는 보조적인 역할을 하는 쓰레드이다. 따라서 일반 쓰레드가 종료되면 강제적으로 자동 종료된다. 일반 쓰레드를 보조하는 업무를 하기 때문에 일반 쓰레드가 없으면 더 이상 존재할 필요가
+없기 때문이다. 데몬 쓰레드의 예로는 가비지 컬렉터, 워드 프로세서의 자동저장, 화면자동갱신 등이 있다.  
+**쓰레드를 생성한 다음에 `start()`를 하기 전에 `setDaemon(true)`를 호출해야 한다. 그리고 데몬 쓰레드가 생성한 쓰레드는 자동으로 데몬 쓰레드가 된다.**
+```java
+public class Ex13_7 implements Runnable {
+    static boolean autoSave = false;
+
+    public static void main(String[] args) {
+        Thread t = new Thread(new Ex13_7());
+        t.setDaemon(true);
+        t.start();
+
+        for (int i = 1; i < 10; i++) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+
+            }
+            System.out.println(i);
+            if(i==5) autoSave = true;
+        }
+
+        System.out.println("프로그램을 종료합니다.");
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            try {
+                Thread.sleep(3 * 1000);
+            } catch (InterruptedException e) {
+
+            }
+
+            if(autoSave) autoSave();
+        }
+    }
+
+    public void autoSave() {
+        System.out.println("작업파일이 자동저장되었습니다.");
+    }
+}
+
+///
+1
+2
+3
+4
+5
+작업파일이 자동저장되었습니다.
+6
+7
+8
+작업파일이 자동저장되었습니다.
+9
+프로그램을 종료합니다.
+```
+이처럼 데몬 쓰레드의 경우, 메인 쓰레드가 종료하면서 같이 종료된다. **만약, `setDaemon(true)`를 호출하지 않고, 데몬 쓰레드로 만들지 않는다면 main 쓰레드가 종료하더라도 계속해서 실행된다.**
+위에서 main 쓰레드가 종료되더라도 끝나지 않은 쓰레드가 있다면 계속해서 실행이 된다고 하였다. 하지만 데몬 쓰레드일 경우에는 main 쓰레드가 끝나면 같이 종료가 된다.
+
+#### 데몬 쓰레드 설정을 하지 않았을 경우
+```java
+public class Ex13_7 implements Runnable {
+    static boolean autoSave = false;
+
+    public static void main(String[] args) {
+        Thread t = new Thread(new Ex13_7());
+//        t.setDaemon(true);
+        t.start();
+
+        for (int i = 1; i < 10; i++) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+
+            }
+            System.out.println(i);
+            if(i==5) autoSave = true;
+        }
+
+        System.out.println("프로그램을 종료합니다.");
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            try {
+                Thread.sleep(3 * 1000);
+            } catch (InterruptedException e) {
+
+            }
+
+            if(autoSave) autoSave();
+        }
+    }
+
+    public void autoSave() {
+        System.out.println("작업파일이 자동저장되었습니다.");
+    }
+}
+
+///
+1
+2
+3
+4
+5
+작업파일이 자동저장되었습니다.
+6
+7
+8
+작업파일이 자동저장되었습니다.
+9
+프로그램을 종료합니다.
+작업파일이 자동저장되었습니다.
+작업파일이 자동저장되었습니다.
+작업파일이 자동저장되었습니다.
+
+... 무한반복 ...
+```
+
+### 쓰레드의 상태
+![image](https://github.com/whxogus215/JavaBookArchive/assets/70999462/587c82f6-948e-407d-a029-d68452e9dffe)
+- 쓰레드는 생성되고 `start()`를 호출했을 때, 바로 실행되지 않고 실행대기열에 저장되어 자신의 차례를 기다린다. 실행대기열은 Queue 구조로 FIFO이다.
+- 주어진 실행시간이 다 되거나 `yield()`를 만나면 다시 실행대기상태가 되고, 다음 차례의 쓰레드가 실행된다.
+- I/O block, wait(), join(), sleep()에 의해 일시정지 상태가 된다면 실행대기열로 다시 들어가지 않고, 일시정지 Pool에서 대기한다.
+  - 일시정지시간이 다 되거나, notify(), interrupt()가 호출되면 다시 실행대기열로 들어가 자신의 차례를 기다린다.
+- 실행을 모두 마치거나 stop()이 호출되면 쓰레드는 소멸된다.
+
+## 쓰레드의 실행제어
+![image](https://github.com/whxogus215/JavaBookArchive/assets/70999462/6c2ecb0a-907d-4262-b309-1c6e208796b0)
+위와 같은 쓰레드의 메서드를 사용하여 쓰레드의 스케쥴링을 제어할 수 있다. 보다 효율적인 스케쥴링은 더 효율적으로 프로그램이 실행되도록 할 것이다. 멀티 쓰레드 프로그램은
+주어진 쓰레드를 최대한 활용하여 낭비되는 쓰레드가 없도록 작성되어야 한다. 따라서 해당 쓰레드 메서드를 효과적으로 사용하는 것은 매우 중요하다.
+> resume(), stop(), suspend()는 쓰레드를 교착상태(dead-lock)로 만들기 쉽기 때문에 deprecated 되었다.  
+> suspend()와 sleep()을 비교했을 때, 무한한 시간동안 쓰레드를 정지시키는 suspend()는 일정시간만 정지시키는 sleep()에 비해 교착상태로 만들기 더 쉬울 것이다.  
+> deprecated는 하위 버전과의 호환을 위해 삭제하지 않고, 사용 금지를 권하는 의미이다. 따라서 사용하지 않는 것이 좋다.
+
+### sleep()
+`sleep()`은 **지정된 시간동안 쓰레드를 멈추게 한다.** 밀리 세컨드 및 나노 세컨드 단위로 시간을 조절할 수 있지만 약간의 오차는 발생할 수 있다. `sleep()`에 의해 일시정지 된 쓰레드는
+시간이 다 되거나 `interrupt()`가 호출되면, `InterruptedException`이 발생되어 꺠어나면서 실행대기(Runnable) 상태가 된다.
+
+
+

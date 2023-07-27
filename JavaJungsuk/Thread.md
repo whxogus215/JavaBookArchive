@@ -463,7 +463,141 @@ public class Ex13_7 implements Runnable {
 
 ### sleep()
 `sleep()`은 **지정된 시간동안 쓰레드를 멈추게 한다.** 밀리 세컨드 및 나노 세컨드 단위로 시간을 조절할 수 있지만 약간의 오차는 발생할 수 있다. `sleep()`에 의해 일시정지 된 쓰레드는
-시간이 다 되거나 `interrupt()`가 호출되면, `InterruptedException`이 발생되어 꺠어나면서 실행대기(Runnable) 상태가 된다.
+시간이 다 되거나 `interrupt()`가 호출되면, `InterruptedException`이 발생되어 꺠어나면서 실행대기(Runnable) 상태가 된다. 따라서 `sleep()`을 호출할 때는 항상 try-catch문으로 예외를 처리해줘야 한다.
+```java
+public class Ex13_8 {
+    public static void main(String[] args) {
+        ThreadEx8_1 th1 = new ThreadEx8_1();
+        ThreadEx8_2 th2 = new ThreadEx8_2();
+        th1.start(); th2.start();
 
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
 
+        }
+        System.out.println("<<main 종료>>");
+    }
+}
 
+class ThreadEx8_1 extends Thread {
+    @Override
+    public void run() {
+        for (int i = 0; i < 300; i++) {
+            System.out.print("-");
+        }
+        System.out.println("<<th1 종료>>");
+    }
+}
+
+class ThreadEx8_2 extends Thread {
+    @Override
+    public void run() {
+        for (int i = 0; i < 300; i++) {
+            System.out.print("|");
+        }
+        System.out.println("<<th2 종료>>");
+    }
+}
+
+///
+---------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||<<th1 종료>>
+|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||<<th2 종료>>
+<<main 종료>>
+
+```
+쓰레드 th1과 th2를 실행시킨 후, 2초 동안 실행중이던 main 쓰레드를 중지시켰다. 만약에 `sleep()` 코드가 없다면 어떻게 될까?
+```java
+public class Ex13_8 {
+    public static void main(String[] args) {
+        ThreadEx8_1 th1 = new ThreadEx8_1();
+        ThreadEx8_2 th2 = new ThreadEx8_2();
+        th1.start(); th2.start();
+
+//        try {
+//            Thread.sleep(2000);
+//        } catch (InterruptedException e) {
+
+//        }
+        System.out.println("<<main 종료>>");
+    }
+}
+
+class ThreadEx8_1 extends Thread {
+    @Override
+    public void run() {
+        for (int i = 0; i < 300; i++) {
+            System.out.print("-");
+        }
+        System.out.println("<<th1 종료>>");
+    }
+}
+
+class ThreadEx8_2 extends Thread {
+    @Override
+    public void run() {
+        for (int i = 0; i < 300; i++) {
+            System.out.print("|");
+        }
+        System.out.println("<<th2 종료>>");
+    }
+}
+
+///
+<<main 종료>>
+|||||||||||||||||||||||||||||||||||||||||||||||||||||||---------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||-------|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||------------------<<th2 종료>>
+-------------------------------------------------------------------------------------------<<th1 종료>>
+```
+이처럼 main 쓰레드가 먼저 종료되고, 그 다음에 th1과 th2가 번갈아가며 수행되는 것을 알 수 있다.
+```java
+public class Ex13_8 {
+    public static void main(String[] args) {
+        ThreadEx8_1 th1 = new ThreadEx8_1();
+        ThreadEx8_2 th2 = new ThreadEx8_2();
+        th1.start();
+
+        try {
+            Thread.sleep(2000);
+            System.out.println(Thread.currentThread().getName());
+        } catch (InterruptedException e) {
+
+        }
+
+        th2.start();
+
+        System.out.println("<<main 종료>>");
+    }
+}
+
+class ThreadEx8_1 extends Thread {
+    @Override
+    public void run() {
+        for (int i = 0; i < 300; i++) {
+            System.out.print("-");
+        }
+        System.out.println("<<th1 종료>>");
+    }
+}
+
+class ThreadEx8_2 extends Thread {
+    @Override
+    public void run() {
+        for (int i = 0; i < 300; i++) {
+            System.out.print("|");
+        }
+        System.out.println("<<th2 종료>>");
+    }
+}
+
+///
+------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------<<th1 종료>>
+main
+<<main 종료>>
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||<<th2 종료>>
+```
+이처럼 `sleep()`을 중간에 넣게 되면 th1이 실행이 끝나면 main 쓰레드가 2초 동안 멈추게 된다.

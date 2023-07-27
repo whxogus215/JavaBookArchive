@@ -14,8 +14,8 @@
   - [sleep()](#sleep--)
   - [interrupt()](#interrupt--)
   - [join() & yield()](#join--과-yield--)
-- [쓰레드의 동기화]
-  - [synchronized를 이용한 동기화]
+- [쓰레드의 동기화](#쓰레드의-동기화)
+  - [synchronized를 이용한 동기화](#synchronized를-이용한-동기화)
   - [wait() & notify()]  
 
     
@@ -690,3 +690,136 @@ class ThreadEx11_2 extends Thread {
 }
 ```
 `join()`을 사용하지 않은 상태에서 코드를 실행하면 main 쓰레드가 바로 종료되기 때문에 소요시간을 측정할 수 없게 된다. 그러나 th1과 th2가 종료될 때까지 기다리기 때문에 소요시간을 출력할 수 있다.
+
+## 쓰레드의 동기화
+**멀티쓰레드 프로세스의 경우 여러 쓰레드가 같은 프로세스의 자원을 공유해서 작업하기 때문에 서로의 작업에 영향을 줄 수 있다.** 여러 쓰레드가 특정 공유자원을 무분별하게 그리고 동시에 작업할 경우 발생하는 문제들을
+막기 위해 도입된 개념이 임계 영역(Critical Section)과 잠금(Lock)이다. 따라서 공유 데이터가 사용되는 코드 영역을 임계 영역으로 지정하고, 공유 데이터(객체)가 가지고 있는 Lock을 획득한 단 하나의 쓰레드만 공유 자원의
+코드를 수행할 수 있게 한다. 그리고 Lock을 반납함으로써 다른 쓰레드가 공유 자원을 사용할 수 있도록 통제하는 것이다. 이처럼 **한 쓰레드가 진행 중인 작업을 다른 쓰레드가 간섭하지 못하도록 막는 것을 쓰레드의 동기화(synchronization)라고 한다.** - 한 쓰레드의 진행 작업을 다른 쓰레드가 간섭하지 못하도록 막는 것
+
+### synchronized를 이용한 동기화
+`synchronized`는 임계 영역(Critical Section)을 설정하기 위해서 사용되는 키워드이다.
+- 메서드 전체를 임계영역으로 설정할 수 있다.
+  - ```java
+    public synchronized void method() { ... }
+    ```
+  - 쓰레드는 메서드를 실행한 시점부터 Lock을 얻게 되고, 메서드가 종료되면 Lock을 반환한다.
+- 클래스 내 특정 영역을 임계 영역으로 설정할 수 있다.
+  - ```java
+    synchronized(객체의 참조변수) { ... }
+    ```
+  - 여기서 참조변수는 Lock을 걸고자 하는 객체를 참조하는 참조변수이어야 한다. 마찬가지로 이 영역 내에 들어가게 되면 Lock을 얻게 되고, 영역을 벗어나면 Lock을 반환한다.
+
+두 방법 모두 Lock을 자동으로 반납하기 때문에 `synchronized`를 통해 임계 영역만 설정해주면 된다. 또한 모든 객체는 하나의 Lock을 갖고 있으며 해당 객체의 Lock을 가진 쓰레드만이 임계 영역의 코드를
+수행할 수 있다. 그리고 다른 쓰레드들은 Lock을 얻을 때까지 기다리게 된다.  
+임계 영역은 멀티쓰레드 프로그램의 성능을 좌우하기 때문에 메서드 전체를 임계 영역으로 설정하기 보다는 블럭을 통해 최소화하는 것이 더 좋다.
+
+```java
+public class Ex13_12 {
+    public static void main(String[] args) {
+        Runnable r = new RunnableEx12();
+        new Thread(r).start();
+        new Thread(r).start();
+    }
+}
+
+class Account {
+    private int balance = 1000;
+
+    public int getBalance() {
+        return balance;
+    }
+
+    public void withdraw(int money){
+        if (balance >= money) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+
+            }
+            balance -= money;
+        }
+    }
+}
+
+class RunnableEx12 implements Runnable {
+
+    Account acc = new Account();
+
+    @Override
+    public void run() {
+        while (acc.getBalance() > 0) {
+            int money = (int) (Math.random() * 3 + 1) * 100;
+            acc.withdraw(money);
+            System.out.println("balance:" + acc.getBalance());
+        }
+    }
+}
+
+///
+balance:800
+balance:900
+balance:700
+balance:600
+balance:500
+balance:200
+balance:0
+balance:-100
+```
+위처럼 `balance`라는 공유 자원에 대한 동기화 처리가 되어있지 않으면 음수 값이 나오게 된다. 왜냐하면 잔고가 0보다 큰 상황에서 한 쓰레드가 작업을 하려던 찰나에 다른 쓰레드가 끼어들어서 출금할 수 있다.
+그렇게 되면, 쓰레드 A와 쓰레드 B가 접근한 자원의 상태는 서로 다르게 되므로 다음과 같은 잘못된 결과 값이 나오게 되는 것이다.
+
+```java
+public class Ex13_12 {
+    public static void main(String[] args) {
+        Runnable r = new RunnableEx12();
+        new Thread(r).start();
+        new Thread(r).start();
+    }
+}
+
+class Account {
+    private int balance = 1000;
+
+    public int getBalance() {
+        return balance;
+    }
+    
+    // 메서드를 동기화
+    public synchronized void withdraw(int money){
+        if (balance >= money) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+
+            }
+            balance -= money;
+        }
+    }
+}
+
+class RunnableEx12 implements Runnable {
+
+    Account acc = new Account();
+
+    @Override
+    public void run() {
+        while (acc.getBalance() > 0) {
+            int money = (int) (Math.random() * 3 + 1) * 100;
+            acc.withdraw(money);
+            System.out.println("balance:" + acc.getBalance());
+        }
+    }
+}
+
+///
+balance:800
+balance:600
+balance:400
+balance:200
+balance:200
+balance:100
+balance:0
+balance:0
+```
+위처럼 공유 자원에 접근하는 메서드 영역을 `synchronized` 동기화하게 되면 음수 값이 나오지 않게 된다. **주의해야할 점은 공유 자원인 balance가 private이라는 점이다. 만약 private이 아니면 외부에서 접근할 수 있기 때문에
+아무리 동기화를 하더라도 이 값의 변경을 막을 수 없다. `synchronized`를 사용하는 것은 단순히 하나의 쓰레드만 접근할 수 있도록 하는 것이지 공유 자원 그 자체를 보호하는 것은 아니기 때문이다.**

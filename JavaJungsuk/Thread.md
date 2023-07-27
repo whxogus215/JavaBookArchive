@@ -13,7 +13,7 @@
 - [쓰레드의 실행제어](#쓰레드의-실행제어)
   - [sleep()](#sleep--)
   - [interrupt()](#interrupt--)
-  - [join() & yield()]
+  - [join() & yield()](#join--과-yield--)
 - [쓰레드의 동기화]
   - [synchronized를 이용한 동기화]
   - [wait() & notify()]  
@@ -601,3 +601,92 @@ main
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||<<th2 종료>>
 ```
 이처럼 `sleep()`을 중간에 넣게 되면 th1이 실행이 끝나면 main 쓰레드가 2초 동안 멈추게 된다.
+
+### interrupt()
+진행 중인 쓰레드를 중간에 중단시켜야 할 때 사용하는 메서드이다. 이는 쓰레드를 강제로 종료시키지는 못하며 단순히 하던 작업을 중지시키는 것이다. 쓰레드는 인스턴스 변수로 interrupted 상태 값을 가지고 있다.
+따라서 `interrupt()`를 호출하면 interrupted 상태 값을 true로 바꾸는 것이다. 마찬가지로 `interrupted()`를 호출하면 현재 interrupted 상태를 반환하고, false로 변경한다. (비슷한 메서드인 `isInterrupted()`는
+상태만 반환하고 값을 바꾸지는 않는다.)
+```java
+public class Ex13_9 {
+    public static void main(String[] args) {
+        ThreadEx9_1 th1 = new ThreadEx9_1();
+        th1.start();
+
+        String input = JOptionPane.showInputDialog("아무 값이나 입력하세요.");
+        System.out.println("입력하신 값은 " + input + "입니다.");
+        th1.interrupt();
+        
+        System.out.println("isInterrupted(): " + th1.isInterrupted());
+    }
+}
+
+class ThreadEx9_1 extends Thread {
+    @Override
+    public void run() {
+        int i = 10;
+
+        while (i != 0 && !isInterrupted()) {
+            System.out.println(i--);
+            for(long x = 0; x<2500000000L;x++);
+        }
+        System.out.println("카운트가 종료되었습니다.");
+    }
+}
+```
+위 코드처럼 `interrupt()`를 통해 쓰레드의 실행흐름을 결정할 수도 있다. 실제로 쓰레드가 `sleep()`, `wait()`, `join()`에 의해 일시정지 상태에 있을 때, 이 쓰레드에 대해 `interrupt()`를 호출하면 `sleep()`, `wait()`, `join()`에서
+`Interrupted Exception`이 발생하고 쓰레드가 Runnable 상태로 바뀐다. **즉, 멈춰있던 쓰레드를 깨워서 실행가능한 상태로 만들 수 있는 것이다.** `sleep()`을 사용할 때, 예외처리를 해야하는 이유가 다음과 같이 `interrupt()`에 의해서
+예외를 발생하고 깨어날 수 있기 때문이다.
+
+### join()과 yield()
+작업 중에 다른 쓰레드의 작업이 먼저 수행되어야할 필요가 있을 때 `join()`을 사용한다.
+```java
+try {
+  th1.join(); // 현재 실행중인 쓰레드가 쓰레드 th1의 작업이 끝날 때까지 기다린다.
+} catch (InterruptedException e) {}
+```
+`join()`도 `sleep()`처럼 `interrupt()`에 의해 대기상태에서 벗어날 수 있기 때문에 예외 처리를 해야 한다. **`sleep()`은 현재 실행중인 쓰레드를 중지시키므로 static 메서드이다. 하지만 `join()`은 특정 쓰레드를 지칭하여 실행되기 때문에
+static 메서드가 아니다.** `join()`은 **자신의 작업 중간에 다른 쓰레드의 작업을 참여(join)시킨다는 의미로 지어진 것이다.** 즉, `th1.join()`일 경우, th1이 쓰레드를 수행하도록 하는 것이다.
+
+`yield()`는 쓰레드 자신에게 주어진 시간을 다음 차례의 쓰레드에게 양보(yield)하는 것이다. 쓰레드가 할당받은 시간을 사용하다가 중간에 `yield()`를 사용하면 남은 시간을 다른 쓰레드에게 양보하게 된다.
+**따라서 `yield()`와 `interrupt()`를 적절히 사용하면, 프로그램의 응답성을 높이고 보다 효율적인 실행이 가능하게 할 수 있다.**
+```java
+public class Ex13_11 {
+    static long startTime = 0;
+
+    public static void main(String[] args) {
+        ThreadEx11_1 th1 = new ThreadEx11_1();
+        ThreadEx11_2 th2 = new ThreadEx11_2();
+        th1.start();
+        th2.start();
+        startTime = System.currentTimeMillis();
+
+        try {
+            th1.join(); // main 쓰레드가 th1의 작업이 끝날 때까지 기다린다.
+            th2.join(); // main 쓰레드가 th2의 작업이 끝날 때까지 기다린다.
+        } catch (InterruptedException e) {
+
+        }
+
+        System.out.println("소요시간:" + (System.currentTimeMillis() - startTime));
+    }
+}
+
+class ThreadEx11_1 extends Thread {
+    @Override
+    public void run() {
+        for (int i = 0; i < 300; i++) {
+            System.out.print(new String("-"));
+        }
+    }
+}
+
+class ThreadEx11_2 extends Thread {
+    @Override
+    public void run() {
+        for (int i = 0; i < 300; i++) {
+            System.out.print(new String("|"));
+        }
+    }
+}
+```
+`join()`을 사용하지 않은 상태에서 코드를 실행하면 main 쓰레드가 바로 종료되기 때문에 소요시간을 측정할 수 없게 된다. 그러나 th1과 th2가 종료될 때까지 기다리기 때문에 소요시간을 출력할 수 있다.

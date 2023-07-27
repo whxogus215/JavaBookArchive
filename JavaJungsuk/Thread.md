@@ -16,7 +16,8 @@
   - [join() & yield()](#join--과-yield--)
 - [쓰레드의 동기화](#쓰레드의-동기화)
   - [synchronized를 이용한 동기화](#synchronized를-이용한-동기화)
-  - [wait() & notify()]  
+  - [wait() & notify()](#wait--과-notify--)
+  
 
     
 출처 : [https://github.com/castello/javajungsuk_basic](https://github.com/castello/javajungsuk_basic)
@@ -823,3 +824,271 @@ balance:0
 ```
 위처럼 공유 자원에 접근하는 메서드 영역을 `synchronized` 동기화하게 되면 음수 값이 나오지 않게 된다. **주의해야할 점은 공유 자원인 balance가 private이라는 점이다. 만약 private이 아니면 외부에서 접근할 수 있기 때문에
 아무리 동기화를 하더라도 이 값의 변경을 막을 수 없다. `synchronized`를 사용하는 것은 단순히 하나의 쓰레드만 접근할 수 있도록 하는 것이지 공유 자원 그 자체를 보호하는 것은 아니기 때문이다.**
+
+### wait()과 notify()
+`synchronized`로 동기화를 한 상태에서 특정 쓰레드가 Lock을 계속 갖고 있다면 작업이 계속 진행되지 않을 수 있다. **따라서 Lock을 가지고 작업을 수행할 상황이 되지 않는다면 Lock을 반납하는 것으로 문제를 해결할 수 있다.**
+`wait()`을 호출하게 되면, 갖고 있던 Lock을 반납하고 대기를 한다ㅏ. 그러면 다른 쓰레드가 Lock을 얻어 작업을 수행할 수 있다. 나중에 다시 작업을 할 수 있는 상황이 된다면 `notify()`를 호출해서 중단된 쓰레드를 깨울 수 있다.
+
+`wait()`과 `notify()`는 특정 객체에 대한 것이므로 Object 클래스에 정의되어 있다. 또한 객체마다 Lock 뿐만 아니라 Waiting Pool이 존재한다. 따라서 특정 `notify()`를 호출하면 특정 객체에 대한 Waiting Pool에 있는 쓰레드를 
+깨우게 되는 것이다. 당연하게도, **`wait(), notify(), notifyAll()`은 동기화 블록(synchronized 블록) 내에서만 사용할 수 있다.**
+
+```java
+public class Ex13_14 {
+    public static void main(String[] args) throws InterruptedException {
+        Table table = new Table();
+
+        // Runnable 인터페이스를 구현한 쓰레드를 참조변수 없이 생성 + 이름 지정
+        new Thread(new Cook(table), "COOK").start();
+        new Thread(new Customer(table, "donut"), "CUST1").start();
+        new Thread(new Customer(table, "burger"), "CUST2").start();
+
+        Thread.sleep(5000);
+        System.exit(0);
+    }
+}
+
+class Customer implements Runnable {
+
+    private Table table;
+    private String food;
+
+    public Customer(Table table, String food) {
+        this.table = table;
+        this.food = food;
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+
+            }
+            String name = Thread.currentThread().getName();
+
+            if(eatFood())
+                System.out.println(name + " ate a " + food);
+            else
+                System.out.println(name + " failed to eat. :(");
+        }
+    }
+
+    boolean eatFood() {
+        return table.remove(food);
+    }
+}
+
+class Cook implements Runnable {
+
+    private Table table;
+
+    public Cook(Table table) {
+        this.table = table;
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            int idx = (int) (Math.random() * table.dishNum());
+            table.add(table.dishNames[idx]);
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+
+            }
+        }
+    }
+}
+
+class Table {
+    String[] dishNames = {"donut", "donut", "burger"};
+    final int MAX_FOOD = 6;
+    private ArrayList<String> dishes = new ArrayList<>();
+
+    public synchronized void add(String dish) {
+        if(dishes.size() >= MAX_FOOD) return;
+        dishes.add(dish);
+        System.out.println("Dishes:" + dishes.toString());
+    }
+
+    public boolean remove(String dishName) {
+        synchronized (this) {
+            while (dishes.size() == 0) {
+                String name = Thread.currentThread().getName();
+                System.out.println(name + " is waiting.");
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+
+                }
+            }
+
+            for (int i = 0; i < dishes.size(); i++) {
+                if (dishName.equals(dishes.get(i))) {
+                    dishes.remove(i);
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public int dishNum() {
+        return dishNames.length;
+    }
+}
+
+///
+Dishes:[burger]
+CUST1 is waiting.
+CUST2 ate a burger
+CUST1 is waiting.
+CUST1 is waiting.
+CUST1 is waiting.
+CUST1 is waiting.
+CUST1 is waiting.
+CUST1 is waiting.
+CUST1 is waiting.
+CUST1 is waiting.
+CUST1 is waiting.
+```
+위 결과에서 알 수 있듯이 CUST1이 동기화된 remove 메서드를 수행하면서 Lock을 계속 쥐고 있다. 따라서 COOK은 Lock을 계속 갖지 못해 add라는 동기화된 메서드를 호출할 수 없게 된다.
+Lock을 계속 쥐고 있게 될 때 다른 쓰레드가 작업을 수행할 수 없음을 보여주는 예제이다.
+
+```java
+public class Ex13_14 {
+    public static void main(String[] args) throws InterruptedException {
+        Table table = new Table();
+
+        // Runnable 인터페이스를 구현한 쓰레드를 참조변수 없이 생성 + 이름 지정
+        new Thread(new Cook(table), "COOK").start();
+        new Thread(new Customer(table, "donut"), "CUST1").start();
+        new Thread(new Customer(table, "burger"), "CUST2").start();
+
+        Thread.sleep(5000); // main 쓰레드가 5초 동안 멈추도록 한다. = 5초 동안 여러 쓰레드가 동작할 수 있다.
+        System.exit(0); // main 쓰레드가 5초 뒤에 다시 실행되면 exit을 통해 프로그램을 종료시킨다.
+        // 이 두 코드가 없으면, COOK과 CUST 쓰레드는 계속 실행된다.
+    }
+}
+
+class Customer implements Runnable {
+
+    private Table table;
+    private String food;
+
+    public Customer(Table table, String food) {
+        this.table = table;
+        this.food = food;
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+
+            }
+            String name = Thread.currentThread().getName();
+
+            table.remove(food);
+            System.out.println(name + " ate a " + food);
+        }
+    }
+}
+
+class Cook implements Runnable {
+
+    private Table table;
+
+    public Cook(Table table) {
+        this.table = table;
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            int idx = (int) (Math.random() * table.dishNum());
+            table.add(table.dishNames[idx]);
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+            }
+        }
+    }
+}
+
+class Table {
+    String[] dishNames = {"donut", "donut", "burger"};
+    final int MAX_FOOD = 6;
+    private ArrayList<String> dishes = new ArrayList<>();
+
+    public synchronized void add(String dish) {
+        while (dishes.size() >= MAX_FOOD) {
+            String name = Thread.currentThread().getName();
+            System.out.println(name + " is waiting.");
+            try {
+                wait(); // COOK 쓰레드가 대기하도록 한다.
+                Thread.sleep(500);
+            } catch (InterruptedException e) {}
+        }
+        dishes.add(dish);
+        notify(); // 대기중이던 CUST 쓰레드를 깨우기 위해 사용한다.
+        System.out.println("Dishes:" + dishes.toString());
+    }
+
+    public void remove(String dishName) {
+        synchronized (this) {
+            String name = Thread.currentThread().getName();
+
+            while (dishes.size() == 0) {
+                System.out.println(name + " is waiting.");
+                try {
+                    wait(); // CUST 쓰레드가 대기하도록 한다.
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {}
+            }
+
+            while (true) {
+                for (int i = 0; i < dishes.size(); i++) {
+                    if (dishName.equals(dishes.get(i))) {
+                        dishes.remove(i);
+                        notify(); // 대기 중인 COOK 쓰레드를 깨우기 위해 사용한다.
+                        return;
+                    }
+                }
+
+                try {
+                    System.out.println(name + " is waiting.");
+                    wait(); // 원하는 음식이 없으면 CUST 쓰레드를 기다리도록 한다.
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {}
+            }
+        }
+    }
+
+    public int dishNum() {
+        return dishNames.length;
+    }
+}
+
+///
+Dishes:[donut]
+CUST2 is waiting.
+CUST1 ate a donut
+Dishes:[burger]
+CUST2 ate a burger
+CUST1 is waiting.
+Dishes:[burger]
+CUST1 is waiting.
+CUST2 ate a burger
+Dishes:[donut]
+CUST1 ate a donut
+Dishes:[burger]
+  ... 생략 ...
+```
+`wait()`과 `notify()`를 통해 Lock을 넘겨줄 수 있도록 작성한 코드이다. 만약 `wait()`을 호출하게 되면 해당 쓰레드는 Table 객체의 Waiting Pool에서 대기하게 된다.
+즉, **공유 자원을 갖고 있는 객체의 Waiting Pool에서 대기한다는 것이 핵심이다.** 여기서는 CUST 쓰레드와 COOK 쓰레드가 같은 Waiting Pool에서 기다리기 때문에
+`notify()`를 하게 되면, 두 쓰레드 중 하나가 Lock을 얻게 된다. **이처럼 여러 종류의 쓰레드가 같은 Waiting Pool에 있으면 특정 쓰레드를 깨우기가 어렵다는 문제점이 존재한다.**

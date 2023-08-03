@@ -26,6 +26,7 @@
   - [람다식을 반환값으로 사용하기](#람다식을-반환값으로-사용하기)
   - [자바8 API에서 제공하는 함수형 인터페이스](#자바8-API에서-제공하는-함수형-인터페이스)
   - [컬렉션 스트림에서 람다 사용하기](#컬렉션-스트림에서-람다-사용하기)
+  - [인터페이스의 스펙 변화](#인터페이스의-스펙-변화)
 
 출처 : https://github.com/expert0226/oopinspring
 
@@ -910,8 +911,65 @@ Age 19!!! Can't enter
 어떤 의미를 갖고 있는지 바로 알 수 있다. `filter()`의 경우, 20세 미만인 경우를 선별(filter)하라는 뜻을 갖고 있다. `forEach()`의 경우, 선별된 각 요소에 대한 출력임을 알 수 있다.
 스트림은 개발자가 요구하는 내용을 선언적으로 코딩할 수 있다는 장점이 있으며, 남이 봤을 때도 이해하는 데 큰 어려움이 없다.
 
+### 인터페이스의 스펙 변화
+자바8 이후로 인터페이스에는 기존의 추상 메서드와 더불어 구현부가 존재하는 메서드가 올 수 있게 되었다. 바로 **default** 키워드를 사용하는 것이다. 이 키워드를 사용한 메서드는
+추상 메서드가 아닐지라도 인터페이스에 존재할 수 있다. 또한 **static**을 사용해 구체화된 정적 메서드도 사용할 수 있게 되었다.
+```java
+public class B017 {
+    public static void main(String[] args) {
+        System.out.format("정적 상수: %d\n",
+                MyFunctionalInterface2.constant);
 
+        MyFunctionalInterface2.concreteStaticMethod();
 
+        MyFunctionalInterface2 mfi2
+                = () -> System.out.println("추상 인스턴스 메서드");
+
+        mfi2.abstractInstanceMethod();
+
+        mfi2.concreteInstanceMethod();
+    }
+}
+
+@FunctionalInterface
+interface MyFunctionalInterface2 {
+    // 정적 상수
+    public static final int constant = 1;
+
+    // 추상 인스턴스 메서드
+    public abstract void abstractInstanceMethod();
+
+    // JAVA 8 default 메서드 - 구체 인스턴스 메서드
+    public default void concreteInstanceMethod() {
+        System.out.println("디폴트 메서드 - 구체 인스턴스 메서드");
+    }
+
+    // JAVA 8 정적 메서드 - 구체 정적 메서드
+    public static void concreteStaticMethod() {
+        System.out.println("정적 메서드 - 구체 정적 메서드");
+    }
+}
+```
+이처럼 함수형 인터페이스에 정적 메서드와 인스턴스 메서드를 사용할 수 있게 되었다. 이것이 도입된 이유는 해당 인터페이스를 구현한 구 버전의 자바 코드들도
+Side Effect 없이 자바 8 JVM에서 구동되도록 하기 위함이다. 계속해서 클래스들이 업그레이드 되면서 코드가 추가되거나 삭제될 것이다. 이 때, 기존에 없던 코드를 추가함으로써
+이전의 모든 코드들을 수정해야 하는 번거로움을 피하기 위해 다음과 같은 기능을 추가한 것이다.
+
+```java
+public class B017 {
+    public static void main(String[] args) {
+        Function<Integer, String> f1 = i -> i.toString(); // apply() 구현
+        Function<String, Integer> f2 = s -> s.length(); // apply() 구현
+        Function<Integer, Integer> f3 = f1.andThen(f2); // f1의 결과가 f2의 입력이 된다.
+
+        System.out.println(f3.apply(12345));
+    }
+}
+
+///
+5
+```
+해당 코드를 보면 Function 인터페이스의 추상 메서드는 `apply()`이다. 따라서 f1과 f2는 각각 `apply()`를 구현한 것이다. 그리고 이 때 f3는 `andThen()`이라는 **default 메서드**를 호출하였다.
+즉, f3의 `apply()` 함수를 **default 메서드**를 활용하여 구현한 것이다. 이처럼 **default 메서드**를 활용함으로써 인터페이스의 기능을 업그레이드 시킬 수 있게 되었다.
 
 
 

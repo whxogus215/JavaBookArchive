@@ -19,6 +19,12 @@
   - [instanceof 연산자](#instanceof-연산자)
   - [package](#package)
   - [실제로 호출되는 것은 클래스의 메서드](#실제로-호출되는-것은-클래스의-메서드)
+- [자바8 람다와 인터페이스 스펙 변화](#자바8-람다와-인터페이스-스펙-변화)
+  - [람다란 무엇인가?](#람다란-무엇인가?)
+  - [함수형 인터페이스](#함수형-인터페이스)
+  - [람다식을 변수에 담아서 사용하기](#람다식을-변수에-담아서-사용하기)
+  - [람다식을 반환값으로 사용하기](#람다식을-반환값으로-사용하기)
+  - [자바8 API에서 제공하는 함수형 인터페이스](#자바8-API에서-제공하는-함수형-인터페이스)
 
 출처 : https://github.com/expert0226/oopinspring
 
@@ -602,6 +608,242 @@ public class Driver {
 (`뽀로로.test() -> 펭귄.test(뽀로로)`)
 
 ![007](https://github.com/whxogus215/JavaBookArchive/assets/70999462/21bf4893-0f33-481c-9566-56463161e44b)
+
+
+## 자바8 람다와 인터페이스 스펙 변화
+하나의 CPU에 여러 코어가 장착되는 멀티 코어 프로세스가 등장하고 진화함에 따라 소프트웨어도 그 흐름에 따라갈 필요가 있었다. 따라서 자바 8에서는 병렬화를 위한 컬렉션(배열, List, Set, Map)을 강화했고,
+이러한 컬렉션을 효율적으로 사용하기 위해 스트림을 강화했다. 또 스트림을 효율적으로 사용하기 위해 함수형 프로그래밍이, 다시 함수형 프로그래밍을 위해 람다가, 또 람다를 위해 인터페이스의 변화가 수반됐다.  
+
+**람다를 지원하기 위한 인터페이스를 함수형 인터페이스라고 한다.**
+![001](https://github.com/whxogus215/JavaBookArchive/assets/70999462/158b1c0a-e341-4b13-be52-69b88710fcd9)
+
+### 람다란 무엇인가?
+**람다란 한 마디로 코드 블록이다.**(`{ }`) 기존에 코드 블록을 사용하기 위해서는 반드시 메서드가 필요했다. 따라서 메스드를 사용하기 위해 익명 객체를 생성해야 하는 경우가 있었다.
+하지만 자바8부터는 코드 블록을 만들기 위해 이러한 번거로움을 수반하지 않아도 된다. 코드 블록을 람다식으로 사용할 수 있고, 이는 **매개변수 또는 반환 값**으로도 활용될 수 있다.
+
+```java
+public class B001 {
+
+    public static void main(String[] args) {
+        Runnable r = new MyTest();
+        r.run();
+    }
+}
+
+class MyTest implements Runnable {
+    @Override
+    public void run() {
+        System.out.println("Hello Lambda!!!");
+    }
+}
+```
+```java
+public class B001 {
+
+    public static void main(String[] args) {
+
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("Hello Lambda 2!!!");
+            }
+        };
+
+        r.run();
+    }
+}
+```
+이처럼 코드 블록을 사용하기 위해서는 별도의 클래스를 생성하거나 익명 클래스를 활용하였다. 하지만 자바 8에서는 익명 클래스를 활용하지 않고 코드 블록을 사용하도록 지원한다.
+```java
+public class B001 {
+
+    public static void main(String[] args) {
+
+        Runnable r = () -> {
+            System.out.println("Hello Lambda 3!!!");
+        };
+
+        r.run();
+    }
+}
+```
+메서드의 몸통에 해당하는 코드 블록은 그대로이되, 객체 생성자 및 메서드 이름이 존재하지 않는다.
+1. 람다식에 사용되는 참조변수 r의 타입이 `Runnable`이기 때문에 컴파일러가 `new Runnable()`임을 알아낼 수 있다. 따라서 코드로 작성하지 않아도 된다.
+2. `Runnable` 인터페이스가 갖고 있는 추상 메서드가 **단 하나**이기 때문에 `run()`을 `()`이라고만 써도 이게 어떤 메서드인지 알 수 있다.
+> 람다식은 (인자 목록) -> {로직}으로 구성되는데, 로직이 단 한 줄일 경우, {}을 생략할 수 있다.
+
+### 함수형 인터페이스 
+```java
+@FunctionalInterface
+public interface Runnable {
+    /**
+     * When an object implementing interface <code>Runnable</code> is used
+     * to create a thread, starting the thread causes the object's
+     * <code>run</code> method to be called in that separately executing
+     * thread.
+     * <p>
+     * The general contract of the method <code>run</code> is that it may
+     * take any action whatsoever.
+     *
+     * @see     java.lang.Thread#run()
+     */
+    public abstract void run();
+}
+```
+이처럼 `Runnable` 인터페이스는 추상 메서드를 **단 한개만** 갖고 있다. 이처럼 추상 메서드를 한 개만 갖는 인터페이스를 자바 8부터는 **함수형 인터페이스**라고 부른다.
+따라서 이러한 함수형 인터페이스만 람다식으로 변경할 수 있다.
+
+```java
+public class B002 {
+    public static void main(String[] args) {
+        MyFunctionalInterface mfi = (int a) -> { return a * a; };
+
+        int b = mfi.runSomething(9);
+
+        System.out.println(b);
+    }
+}
+
+@FunctionalInterface
+interface MyFunctionalInterface {
+    public abstract int runSomething(int count);
+}
+
+///
+81
+```
+함수형 인터페이스를 직접 만들 경우, `@FunctionalInterface` 어노테이션을 붙여야 한다. 이 어노테이션을 통해 해당 인터페이스가 추상 메서드를 단 한개만 갖고 있는지 확인하게 된다.
+여기서 인터페이스의 추상 메서드인 `runSomething`의 매개변수가 int 타입 1개만 존재한다는 걸 알 수 있다. 따라서 사용 시 int를 생략할 수 있다. 이를 **타입 추정 기능**이라고 한다.
+- `(int a) -> { return a * a; };`
+  - `(a) -> { return a * a; };`
+    - `a -> { return a * a; };` (인자가 하나이고 자료형을 표기하지 않을 경우 소괄호 생략 가능)
+      - `a -> a * a ;` (로직이 단 한줄 일경우, 중괄호도 생략가능하며 return도 같이 생략해야 한다.)
+     
+이처럼 **생략이 가능한 이유는 인터페이스에서 추상 메서드를 단 한개를 정의했으며 정의한 내용에 반환 타입과 매개변수가 명시되어 있기 때문이다. 따라서 컴파일러는 이를 근거로 생략된 정보들을
+알아낼 수 있는 것이다.**
+
+```java
+public class B002 {
+    public static void main(String[] args) {
+        MyFunctionalInterface mfi = a -> a * a;
+
+        int b = mfi.runSomething(9);
+
+        System.out.println(b);
+    }
+}
+
+@FunctionalInterface
+interface MyFunctionalInterface {
+    public abstract int runSomething(int count);
+}
+
+///
+81
+```
+코드 블록 뒤에 있는 세미 콜론(;)은 생략할 수 없다. 이처럼 생략했을 때, 훨씬 간편하게 작성할 수 있다. **람다식을 보게 되면 이에 관련된 함수형 인터페이스가 무엇인지 확인하는 것이 중요하다.**
+
+### 람다식을 변수에 담아서 사용하기
+지금까지 람다식을 인터페이스 타입의 참조 변수에 담아서 사용하였다. 그렇다는 것은 해당 **람다식을 특정 메서드의 매개변수로 활용할 수 있다는 뜻이다.**
+```java
+public class B002 {
+    public static void main(String[] args) {
+        MyFunctionalInterface mfi = a -> a * a;
+        doIt(mfi);
+    }
+
+    public static void doIt(MyFunctionalInterface mfi) {
+        int b = mfi.runSomething(8);
+
+        System.out.println(b);
+    }
+}
+
+@FunctionalInterface
+interface MyFunctionalInterface {
+    public abstract int runSomething(int count);
+}
+```
+람다식을 통해 `int runSomething(int count)` 메서드가 구현이 되었다. 따라서 해당 참조변수를 통해 람다식을 사용할 수 있는 것이다.  
+
+**만약, 람다식을 한 번만 사용한다면 굳이 변수에 할당하지 않고 사용할 수 있다.**
+```java
+public class B002 {
+    public static void main(String[] args) {
+        doIt(a -> a * a);
+    }
+
+    public static void doIt(MyFunctionalInterface mfi) {
+        int b = mfi.runSomething(8);
+
+        System.out.println(b);
+    }
+}
+
+@FunctionalInterface
+interface MyFunctionalInterface {
+    public abstract int runSomething(int count);
+}
+```
+많은 것이 생략되어서 뭐가 뭔지 모를 수 있다. 람다식을 봤을 때는 **특정 인터페이스의 추상 메서드가 구현된 부분이라고 생각하고, 람다식을 메서드로 치환해서 생각해보자!**
+```java
+doIt(a -> a * a) -> doIt(runSomething(int a { return a * a; });)
+```
+
+### 람다식을 반환값으로 사용하기
+```java
+public class B002 {
+    public static void main(String[] args) {
+        MyFunctionalInterface mfi = todo();
+
+        int result = mfi.runSomething(3);
+        System.out.println(result);
+    }
+
+    public static MyFunctionalInterface todo() {
+        return num -> num * num;
+    }
+}
+
+@FunctionalInterface
+interface MyFunctionalInterface {
+    public abstract int runSomething(int count);
+}
+```
+**주의해야할 점은 람다식을 구현했다고 해서 해당 메서드가 사용된 것은 아니다!** 람다식은 함수형 인터페이스의 추상 메서드를 구현한 것일 뿐이지 실제로 실행하는 것은 아니다.
+따라서 위 예제들처럼 람다식이 구현한 실제 추상 메서드를 호출함으로써 기능이 수행되는 것이다!
+
+### 자바8 API에서 제공하는 함수형 인터페이스
+자바8에서는 사용자들이 많이 쓸 것이라 생각하는 인터페이스를 `java.util.function` 패키지 등에서 제공하고 있다. 개발자들이 많이 사용할 것으로 예상되는 함수형 인터페이스들을
+정의하고 있다. 물론, 함수형 인터페이스이기 때문에 실제 추상 메서드를 구현하는 것은 사용하는 개발자의 몫이다. 이들이 제공하는 것은 인터페이스 이름, 반환형, 매개변수, 추상 메서드 뿐이다.
+![image](https://github.com/whxogus215/JavaBookArchive/assets/70999462/2df13652-8c9b-41a0-8074-97b81ff261ac)(https://joomn11.tistory.com/22)
+
+이처럼 각각의 인터페이스마다 제공하는 추상 메서드의 형태가 다 다르다. 따라서 개발자가 필요에 맞는 인터페이스를 사용하여 구현하기만 하면 된다.
+```java
+public class B003 {
+    public static void main(String[] args) {
+        /*
+        Predicate<Integer> pre = new Predicate<Integer>() {
+            @Override
+            public boolean test(Integer integer) {
+                return true;
+            }
+        };
+        */
+        Predicate<Integer> pre = num -> num > 10;
+
+        System.out.println(pre.test(13));
+        System.out.println(pre.test(3));
+    }
+}
+```
+이전 예제들처럼 직접 함수형 인터페이스를 생성하지 않고 기존에 있는 인터페이스를 사용함으로써 코드가 더욱 간편해졌다. 함수형 인터페이스는 주석부분처럼 익명 클래스로 작성이 가능하며, 자바 8 이후로부터는
+람다식을 사용해서 구현할 수도 있다. 구현부에 해당하는 `num -> num > 10`은 추상 메서드인 `boolean test(Integer integer)`를 구현한 것이다. num은 integer와 매핑되며, `num > 10`은 비교 연산자를 통해 True 혹은
+False가 반환된다. **주의해야할 점은 자바8의 함수형 인터페이스를 사용하는 경우, 해당 인터페이스에 정의된 추상 메서드의 형태에 맞춰서 람다식을 작성해야 한다.** 만약 위 예제에서 `num > 10`이 아닌 `num + 10`으로 하면
+반환 타입의 오류가 발생한다. 정의된 test 메서드의 반환타입은 boolean인데 int 타입으로 반환하는 람다식을 작성했기 때문이다.
+
+
+
 
 
 

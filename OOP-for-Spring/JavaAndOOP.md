@@ -25,6 +25,7 @@
   - [람다식을 변수에 담아서 사용하기](#람다식을-변수에-담아서-사용하기)
   - [람다식을 반환값으로 사용하기](#람다식을-반환값으로-사용하기)
   - [자바8 API에서 제공하는 함수형 인터페이스](#자바8-API에서-제공하는-함수형-인터페이스)
+  - [컬렉션 스트림에서 람다 사용하기](#컬렉션-스트림에서-람다-사용하기)
 
 출처 : https://github.com/expert0226/oopinspring
 
@@ -841,6 +842,75 @@ public class B003 {
 람다식을 사용해서 구현할 수도 있다. 구현부에 해당하는 `num -> num > 10`은 추상 메서드인 `boolean test(Integer integer)`를 구현한 것이다. num은 integer와 매핑되며, `num > 10`은 비교 연산자를 통해 True 혹은
 False가 반환된다. **주의해야할 점은 자바8의 함수형 인터페이스를 사용하는 경우, 해당 인터페이스에 정의된 추상 메서드의 형태에 맞춰서 람다식을 작성해야 한다.** 만약 위 예제에서 `num > 10`이 아닌 `num + 10`으로 하면
 반환 타입의 오류가 발생한다. 정의된 test 메서드의 반환타입은 boolean인데 int 타입으로 반환하는 람다식을 작성했기 때문이다.
+
+### 컬렉션 스트림에서 람다 사용하기
+람다는 다양한 용도가 있지만 그 중에서도 **컬렉션 스트림**을 위한 기능에 크게 초점이 맞춰져 있다. 컬렉션 스트림과 람다를 조합하여 사용하면 보다 적은 코드로 안정적인 구현을 할 수 있다.
+```java
+public class B011 {
+    public static void main(String[] args) {
+        Integer[] ages = {20, 25, 18, 27, 30, 21, 17, 19, 34, 28};
+
+        for (int i = 0; i < ages.length; i++) {
+            if (ages[i] < 20) {
+                System.out.format("Age %d!!! Can't enter\n", ages[i]);
+            }
+        }
+    }
+}
+
+///
+Age 18!!! Can't enter
+Age 17!!! Can't enter
+Age 19!!! Can't enter
+```
+위와 같은 배열과 for문을 사용한 시뮬레이션 코드는 프로그래밍에서 자주 등장한다. 하지만 여기에는 한 가지 문제가 있다. 개발자가 for문을 작성하는 도중에 i 값을 1로 하거나, <를 <=로 작성하는 실수를 하게 되면
+코드가 정상적으로 동작하지 않을 것이다. 이러한 개발자의 실수를 방지하는 코드를 작성하기 위해 **for each 구문**을 활용할 수 있다.
+
+```java
+public class B011 {
+    public static void main(String[] args) {
+        Integer[] ages = {20, 25, 18, 27, 30, 21, 17, 19, 34, 28};
+
+        for (int age : ages) {
+            if (age < 20) {
+                System.out.format("Age %d!!! Can't enter\n", age);
+            }
+        }
+    }
+}
+
+///
+Age 18!!! Can't enter
+Age 17!!! Can't enter
+Age 19!!! Can't enter
+```
+여기서 스트림을 사용하면 코드는 더욱 간소화 된다.
+```java
+public class B011 {
+    public static void main(String[] args) {
+        Integer[] ages = {20, 25, 18, 27, 30, 21, 17, 19, 34, 28};
+
+        Arrays.stream(ages)
+                .filter(age -> age < 20)
+                .forEach(age -> System.out.format("Age %d!!! Can't enter\n", age));
+    }
+}
+
+///
+Age 18!!! Can't enter
+Age 17!!! Can't enter
+Age 19!!! Can't enter
+```
+`filter()`와 `forEach()`의 메서드를 살펴보면 인자로 람다식이 들어가 있다. 즉 각각의 메서드는 함수형 인터페이스를 매개변수로 삼고 있으며,
+**해당 함수형 인터페이스의 추상 메서드를 람다식으로 구현한 것이다.**
+![image](https://github.com/whxogus215/JavaBookArchive/assets/70999462/751f2209-5f5d-40c6-8b31-fa29bb10c4c9)
+![image](https://github.com/whxogus215/JavaBookArchive/assets/70999462/5e189e7b-32fe-4a8b-b350-230f211420de)
+
+앞에서 언급한 람다식을 변수로 활용한 경우이다. 이와 같이 스트림과 람다식을 활용했을 때 장점은 무엇일까? 바로 선언적 프로그래밍으로써 해당 코드가
+어떤 의미를 갖고 있는지 바로 알 수 있다. `filter()`의 경우, 20세 미만인 경우를 선별(filter)하라는 뜻을 갖고 있다. `forEach()`의 경우, 선별된 각 요소에 대한 출력임을 알 수 있다.
+스트림은 개발자가 요구하는 내용을 선언적으로 코딩할 수 있다는 장점이 있으며, 남이 봤을 때도 이해하는 데 큰 어려움이 없다.
+
+
 
 
 

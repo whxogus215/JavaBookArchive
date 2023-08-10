@@ -1,9 +1,9 @@
 # Contents of 컬렉션 프레임웍
 - [컬렉션 프레임웍](#컬렉션-프레임웍)
- - [Collection 인터페이스](#Collection-인터페이스)
- - [List 인터페이스](#List-인터페이스)
- - [Set 인터페이스](#Set-인터페이스)
- - [Map 인터페이스](#Map-인터페이스)
+  - [Collection 인터페이스](#Collection-인터페이스)
+  - [List 인터페이스](#List-인터페이스)
+  - [Set 인터페이스](#Set-인터페이스)
+  - [Map 인터페이스](#Map-인터페이스)
 
 
 

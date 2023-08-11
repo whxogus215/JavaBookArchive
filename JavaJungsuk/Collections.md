@@ -2,8 +2,11 @@
 - [컬렉션 프레임웍](#컬렉션-프레임웍)
   - [Collection 인터페이스](#Collection-인터페이스)
   - [List 인터페이스](#List-인터페이스)
+    - [ArrayList](#ArrayList)
+    - [LinkedList](#LinkedList)
   - [Set 인터페이스](#Set-인터페이스)
   - [Map 인터페이스](#Map-인터페이스)
+  - [스택과 큐](#스택과-큐)
 
 
 
@@ -65,3 +68,73 @@ Map 인터페이스는 **Key와 Value를 하나의 쌍으로 묶어서 저장하
 
 `values()`의 반환타입은 Collection이고, `KeySet()`의 반환타입은 Set임을 알 수 있다. **Map 인터페이스는 값에 대해서는 중복을 허용하기 때문에 Collection 타입(List)으로 반환하고, 키는 중복을 허용하지 않기 때문에 Set 타입으로 반환하는 것이다.**
 JDK 11 기준으로 AbstractMap, EnumMap 등 여러 컬렉션 클래스들이 추가로 구현되어 있다. List, Set과는 비교가 안될 정도로 많은 구현 클래스들이 Map 인터페이스에 존재한다.
+
+### ArrayList
+ArrayList는 컬렉션 프레임웍 중 가장 많이 사용되는 **컬랙션 클래스**이다. List 인터페이스를 구현하기 때문에 순서가 유지되고, 중복을 허용한다. ArrayList는 기존의 Vector 클래스를 개선하였기 때문에 웬만하면 Vector보다는
+ArrayList 사용을 권장한다. (Vector는 구버전 코드의 호환성을 위해 남겨져있다.)
+
+![image](https://github.com/whxogus215/JavaBookArchive/assets/70999462/552be761-a6b9-4e13-98f8-676839a804ac)
+
+이처럼 ArrayList는 내부에 Object형 배열을 갖고 있기 때문에 모든 객체를 담을 수 있으며, 데이터의 순서는 0번부터 차례대로 저장된다.
+
+ArrayList의 경우, 추가와 삭제가 기존의 배열 자료구조의 특징을 따른다. 즉, 순차적으로 데이터를 추가하거나 맨 끝에서부터 데이터를 삭제할 때는 O(1)이지만, 중간에 데이터를 삽입하거나 삭제하는 경우, O(N)의 시간복잡도가 소요된다.
+
+### LinkedList
+앞서 ArrayList의 경우, 배열의 특성을 따르기 때문에 **데이터의 중간 부분의 추가 및 삭제에 시간이 많이 걸린다는 단점이 있다. 하지만 연결 리스트, LinkedList를 사용하면 그 문제가 해결된다.** 또한 배열과 달리 유기적으로 데이터를 추가할 수 있다. 새로운 데이터를 맨 끝에 이어붙이기만 하면 되기 때문이다.**(배열의 경우, 새로운 크기의 배열을 생성하여 복사해야 한다.)** 
+
+![image](https://github.com/whxogus215/JavaBookArchive/assets/70999462/577c8fcf-420e-4736-b519-d25106558499)
+
+이처럼 연결 리스트는 배열과 다릴 물리적으로 데이터가 차례대로 저장되어 있지 않기 때문에 자유롭게 수정이 가능하다. 하지만 데이터를 순회하는 경우에는 배열보다 시간이 더 많이 걸린다는 단점이 있다.
+
+![image](https://github.com/whxogus215/JavaBookArchive/assets/70999462/d7580aab-1d35-4dd2-bcbb-e9a82bc91bd6)
+
+이처럼 배열의 경우, 특정 데이터의 주소를 찾는 방법은 매우 간편하다. 하지만 연결 리스트의 경우, 처음부터 n번째 데이터까지 차례대로 따라가야지 원하는 값을 얻을 수 있다.
+
+![image](https://github.com/whxogus215/JavaBookArchive/assets/70999462/175c586a-2f7d-405a-b5c1-58f7939eb17f)
+
+따라서 순차적으로 데이터를 저장하고 삭제하는 **Stack 자료구조의 경우, ArrayList로 구현하는 것이 적합하다.** 들어오는 곳과 나가는 곳이 동일하기 때문이다. 하지만 **Queue의 경우,** 뒤에서 삽입되어 앞으로 나가기 때문에 ArrayList보다는
+추가,삭제가 쉬운 **LinkedList로 구현하는 것이 더 적합하다.**
+
+### 스택과 큐
+자바에서는 스택을 하나의 클래스로 만들어 두었다. Vector 클래스를 상속받았기에, 해당 타입의 참조변수로 바로 생성이 가능하다. 하지만 큐는 인터페이스 타입으로 존재하며 이를 구현한 다양한 큐 클래스가 존재한다.
+
+![image](https://github.com/whxogus215/JavaBookArchive/assets/70999462/68a4c5b8-8730-4094-9ed9-9441134e1140)
+
+```java
+public class Ex11_2 {
+    public static void main(String[] args) {
+        Stack st = new Stack();
+        Queue q = new LinkedList(); // Queue 인터페이스의 구현 클래스 중 하나인 LinkedList 사용
+
+        st.push("0");
+        st.push("1");
+        st.push("2");
+
+        q.offer("0");
+        q.offer("1");
+        q.offer("2");
+
+        System.out.println("= Stack =");
+        while (!st.empty()) {
+            System.out.println(st.pop());
+        }
+
+        System.out.println("= Queue =");
+        while (!q.isEmpty()) {
+            System.out.println(q.poll());
+        }
+    }
+}
+```
+이처럼 큐를 사용할 경우, 해당 인터페이스를 구현한 구현 클래스를 생성자로 사용해야 한다. (인터페이스 타입의 참조변수를 사용하면 다형성을 통해 얼마든지 다른 구현체로 손쉽게 변경이 가능)
+
+
+
+
+
+
+
+
+
+
+

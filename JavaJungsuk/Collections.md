@@ -7,6 +7,9 @@
   - [Set 인터페이스](#Set-인터페이스)
   - [Map 인터페이스](#Map-인터페이스)
   - [스택과 큐](#스택과-큐)
+- [Iterator](#Iterator)
+  - [Map과 Iterator](#Map과-Iterator)
+- [Arrays](#Arrays)
 
 
 
@@ -128,7 +131,90 @@ public class Ex11_2 {
 ```
 이처럼 큐를 사용할 경우, 해당 인터페이스를 구현한 구현 클래스를 생성자로 사용해야 한다. (인터페이스 타입의 참조변수를 사용하면 다형성을 통해 얼마든지 다른 구현체로 손쉽게 변경이 가능)
 
+## Iterator
+`Iterator, ListIterator, Enumeration`은 모두 **컬렉션에 저장된 요소들에 접근하기 위해 사용되는 인터페이스이다.** Enumeration은 Iterator의 구버전이며, List를 구현한 클래스의 경우에만 ListIterator 호출이 가능하다.
+컬렉션 프레임웍에서는 컬렉션에 저장된 요소들을 읽어오는 방법을 **표준화**하였다. 따라서 요소를 읽어오는 기능들을 정의한 인터페이스인 Iterator가 등장하게 되었고, Collection 인터페이스에는 Iterator를 구현한 클래스의
+인스턴스를 반환하는 `iterator()`를 정의하고 있다.
 
+![image](https://github.com/whxogus215/JavaBookArchive/assets/70999462/2ca6ea7a-4490-4675-aba6-e16c00592676)
+> Collection 인터페이스에 정의된 iterator()
+
+![image](https://github.com/whxogus215/JavaBookArchive/assets/70999462/84dc8263-0501-4afe-9a7e-497c4e0262ee)
+> ArrayList 클래스에 구현된 iterator()
+
+이처럼 컬렉션 클래스에는 iterator를 직접 구현하였고, 반환되는 클래스 또한 Iterator 인터페이스를 구현한 클래스이다. 따라서 `Iterator<E> iterator()`라는 메서드 정의만으로 다양한 종류의 클래스들을 반환할 수 있는 것이다.
+(이것이 바로 객체지향의 장점 중 하나이다.)
+
+그렇다면 왜 굳이 ArrayList 내에 있는 요소를 for문 혹은 Enhanced for문을 통해 데이터를 탐색할 수 있음에도 불구하고 왜 다음과 같은 Iterator라는 인터페이스를 사용하여 표준화한 것일까?
+```java
+List list = new ArrayList();
+Iterator it = list.iterator(); // ArrayList 클래스에서 구현한 iterator()가 호출된다.
+
+while(it.hasNext()){
+  System.out.println(it.next()); // iterator 인스턴스가 지칭한 객체를 반환한다.
+}
+```
+다음 코드에서 ArrayList가 아닌 다른 List 인터페이스의 구현 클래스를 사용해야 한다면 우리는 `new ArrayList()` 부분만 바꿔주면 된다. 각각의 구현 클래스마다 요소에 접근하는 방법이 다를지라도
+저 Iterator를 통해 접근하는 방법 만큼은 **표준화되어 있기 때문이다.** 따라서 이와 같이 **인터페이스를 통해 표준화시킴으로써 코드의 일관성을 유지하고 재사용성을 극대화할 수 있는 것이다.**
+
+### Map과 Iterator
+Map 인터페이스를 구현한 클래스는 `iterator()`를 직접 호출할 수 없다. Map은 Key-Value 쌍 형태이기 때문에 이 엔트리를 저장한 `keySet()`,`entrySet()`을 통해 key와 value에 대한 각각의
+Set을 얻은 뒤, iterator()를 호출해야 한다.
+```java
+Map map = new HashMap();
+Iterator it = map.entrySet().iterator();
+```
+EntrySet과 KeySet 클래스는 내부에 Iterator를 갖고 있다. 따라서 Map에 대한 Iterator를 호출하기 위해서는 Set이 있어야 한다.
+
+![image](https://github.com/whxogus215/JavaBookArchive/assets/70999462/e8503218-47f7-43e1-a936-c75012398c66)
+
+```java
+public class Ex11_5 {
+    public static void main(String[] args) {
+        Map map = new HashMap();
+
+        map.put(1, "11");
+        map.put(2, "22");
+
+        Iterator iterator = map.entrySet().iterator();
+
+        while (iterator.hasNext()) {
+            Object next = iterator.next();
+            System.out.println(next);
+
+            ///
+            1=11
+            2=22
+        }
+
+        Iterator iterator = map.keySet().iterator();
+
+        while (iterator.hasNext()) {
+            Object next = iterator.next();
+            System.out.println(next);
+
+            ///
+            1
+            2
+        }
+    }
+}
+```
+
+## Arrays
+Arrays 클래스에는 배열을 다루는데 유용한 메서드가 정의되어 있다. `toString()`의 경우에도, 매개변수가 boolean 타입부터 Object 타입까지 여러 메서드가 오버로딩되어 있으며,
+**Arrays에 정의된 메서드는 모두 static 메서드이다. 따라서 Arrays 클래스를 생성하지 않고도 Arrays의 메서드들을 바로 사용할 수 있는 것이다.**
+
+1. copyOf(), copyOfRange() : 배열 전체 혹은 배열의 일부를 복사해서 새로운 배열을 만들어서 반환하는 메서드
+2. fill(), setAll() : 지정된 값으로 배열의 요소를 채우거나, 람다식을 활용하여 원하는 값으로 채울 수 있다.
+
+![image](https://github.com/whxogus215/JavaBookArchive/assets/70999462/3e2458c7-a745-4608-80a6-b98e84b7fc28)
+> IntFunction의 apply()를 람다식을 통해 구현할 수 있으며, 구현된 내용을 토대로 배열의 값을 할당한다.
+
+3. sort(), binarySearch() : 배열의 요소를 정렬하거나, 찾고자 하는 요소의 인덱스를 탐색할 수 있다.(이진탐색 : 정렬된 배열만 가능)
+4. equals(), toString() : 배열의 요소가 같은지 비교하거나, 배열의 요소를 문자열로 출력한다.
+   - 2차원 배열의 경우, deppEquals()를 사용한다. 2차원 배열을 equals()로 비교할 경우, 배열이 아닌 배열에 저장된 주소 값을 비교하기 때문이다.
+5. asList() : List를 구현한 클래스를 List 타입으로 변환한다.
 
 
 

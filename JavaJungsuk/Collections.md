@@ -10,7 +10,7 @@
 - [Iterator](#Iterator)
   - [Map과 Iterator](#Map과-Iterator)
 - [Arrays](#Arrays)
-- [Comparator와 Comparable](#Comparator와 Comparable)
+- [Comparator와 Comparable](#Comparator와-Comparable)
 
 
 

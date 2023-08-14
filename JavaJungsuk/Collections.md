@@ -10,6 +10,7 @@
 - [Iterator](#Iterator)
   - [Map과 Iterator](#Map과-Iterator)
 - [Arrays](#Arrays)
+- [Comparator와 Comparable](#Comparator와 Comparable)
 
 
 
@@ -215,6 +216,22 @@ Arrays 클래스에는 배열을 다루는데 유용한 메서드가 정의되�
 4. equals(), toString() : 배열의 요소가 같은지 비교하거나, 배열의 요소를 문자열로 출력한다.
    - 2차원 배열의 경우, deppEquals()를 사용한다. 2차원 배열을 equals()로 비교할 경우, 배열이 아닌 배열에 저장된 주소 값을 비교하기 때문이다.
 5. asList() : List를 구현한 클래스를 List 타입으로 변환한다.
+
+## Comparator와 Comparable
+Comparator와 Comparable은 모두 **인터페이스이다.** 인터페이스는 저마다 특정한 기능을 수행하는 메서드들을 정의하고 있다. 이들은 **컬렉션을 정렬하기 위해
+필요한 메서드를 정의하고 있다.**
+
+![image](https://github.com/whxogus215/JavaBookArchive/assets/70999462/89d64321-541f-41ec-82b3-dda116a67830)
+![image](https://github.com/whxogus215/JavaBookArchive/assets/70999462/1fc02714-dc78-48d2-a7de-268770ab0270)
+
+`Comparable`은 `java.lang`에 있으며, `Comparator`는 `java.util`에 있다. `Comparable`과 달리 `Comparator`는 함수형 인터페이스이며, 다양한 메서드들이 정의되어 있다.
+즉, Comparator를 사용하면 람다식을 통해 보다 간결화된 구현이 가능하다는 뜻이다. 어쨌든 두 인터페이스의 비교 메서드는 두 객체를 비교하여 정수 값을 반환하는 것을 알 수 있다.
+
+- Comparable : 기본 정렬기준을 구현하는데 사용
+- Comparator : 기본 정렬기준 외에 다른 기준으로 정렬하고자 할 때 사용(Comparable이 구현되어 있는 클래스에서 추가적으로 정렬 기준을 만들고 싶을 때 사용)
+
+
+
 
 
 

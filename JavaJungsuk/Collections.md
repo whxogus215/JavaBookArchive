@@ -230,7 +230,44 @@ Comparator와 Comparable은 모두 **인터페이스이다.** 인터페이스는
 - Comparable : 기본 정렬기준을 구현하는데 사용
 - Comparator : 기본 정렬기준 외에 다른 기준으로 정렬하고자 할 때 사용(Comparable이 구현되어 있는 클래스에서 추가적으로 정렬 기준을 만들고 싶을 때 사용)
 
+### 정리
+`Comparable`과 `Comparator`는 **정렬에 대한 비교 기준을 제시하는 방법이다.** 이들이 구현된 클래스들은 일반적으로 **오름차순을 기준으로 되어 있다.**
+따라서 특정 클래스가 `Comparable` 혹은 `Comparator`를 구현한 클래스는 **정렬이 가능하다는 뜻이다.**
 
+```java
+public class Ex11_7 {
+    public static void main(String[] args) {
+        String[] strArr = {"cat", "Dog", "lion", "tiger"};
+
+        Arrays.sort(strArr);
+        System.out.println("strArr=" + Arrays.toString(strArr));
+
+        Arrays.sort(strArr,String.CASE_INSENSITIVE_ORDER);
+        System.out.println("strArr=" + Arrays.toString(strArr));
+
+        Arrays.sort(strArr,new Descending());
+        System.out.println("strArr=" + Arrays.toString(strArr));
+
+    }
+
+}
+
+class Descending implements Comparator {
+
+    @Override
+    public int compare(Object o1, Object o2) {
+        if (o1 instanceof Comparable && o2 instanceof Comparable) {
+            Comparable c1 = (Comparable) o1;
+            Comparable c2 = (Comparable) o2;
+            return c1.compareTo(c2) * -1; // String 클래스가 구현한 Comparable의 compareTo 메서드 : 오름차순
+        }
+        return -1;
+    }
+}
+```
+이와 같이 기존에 구현된 `Integer` 클래스의 `compareTo()`는 오름차순을 기준으로 구현되었다. 따라서 이를 내림차순으로 하고 싶으면 * -1을 하는 것이다. 정렬함수는
+비교함수(`Comparable`과 `Comparator`에서 구현해야 하는 메서드)를 호출함으로써 반환 값을 토대로 정렬을 수행한다. **이미 정렬에 관련된 메서드들은 자바에서 다 구현이 되어있다.
+따라서 구현된 내용의 스펙에 따라 반환 값을 설정만 해주면 된다.(비교 기준 제시) 얼마나 간편한가!**
 
 
 

@@ -11,7 +11,8 @@
   - [Map과 Iterator](#Map과-Iterator)
 - [Arrays](#Arrays)
 - [Comparator와 Comparable](#Comparator와-Comparable)
-
+- [HashSet](#HashSet)
+  - [equals()와 hashCode()](#equals--와-hashCode--)
 
 
 
@@ -269,11 +270,99 @@ class Descending implements Comparator {
 비교함수(`Comparable`과 `Comparator`에서 구현해야 하는 메서드)를 호출함으로써 반환 값을 토대로 정렬을 수행한다. **이미 정렬에 관련된 메서드들은 자바에서 다 구현이 되어있다.
 따라서 구현된 내용의 스펙에 따라 반환 값을 설정만 해주면 된다.(비교 기준 제시) 얼마나 간편한가!**
 
+## HashSet
+**HashSet은 Set 인터페이스를 구현한 가장 대표적인 컬렉션이며, Set 인터페이스의 특징을 이어받아 중복된 요소를 저장하지 않는다.** HashSet은 저장순서를 유지하지 않으므로 저장순서를
+유지하길 원한다면 **LinkedHashSet을 사용해야 한다.**
 
+```java
+public class Ex11_10 {
+    public static void main(String[] args) {
+        Set set = new HashSet();
+        for (int i = 0; set.size() < 6; i++) {
+            int num = (int)(Math.random() * 45) + 1;
+            set.add(new Integer(num));
+        }
+        List list = new LinkedList<>(set);
+        Collections.sort(list, new DescComp2());
+        System.out.println(list);
+    }
+}
 
+class DescComp2 implements Comparator {
+    @Override
+    public int compare(Object o1, Object o2) {
+        if(!(o1 instanceof Integer && o2 instanceof Integer))
+            return -1;
 
+        Integer i = (Integer) o1;
+        Integer i2 = (Integer) o2;
+        return i.compareTo(i2) * -1;
+    }
+}
+```
+이처럼 정렬을 하기 위해서는 List 타입에 담아야 한다. 따라서 컬렉션을 매개변수로 한 생성자를 사용하여 `LinkedList`를 만들었고, List는 Collection에 속하기 때문에 `Collections`의 sort 함수를 사용한다.
+이 때 마찬가지로 Comparator를 통해 새로운 정렬 기준을 제공하는 클래스를 생성하여 매개변수로 전달할 수도 있다. 위 코드의 경우, `Integer`는 기존에 Comparable을 구현한게 있었기 때문에 추가로 비교 기준을
+만들기 위해 Comparator를 구현하였다.
 
+### equals()와 hashCode()
 
+```java
+public class Ex11_11 {
+    public static void main(String[] args) {
+        Set set = new HashSet();
+        set.add("abc");
+        set.add("abc");
+        set.add(new Person("David", 10));
+        set.add(new Person("David", 10));
+
+        System.out.println(set);
+    }
+}
+
+class Person {
+    String name;
+    int age;
+
+    public Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    @Override
+    public String toString() {
+        return name + ":" + age;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if(!(o instanceof Person)) return false;
+        Person p = (Person) o;
+        return name.equals(p.name) && age==p.age;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, age);
+    }
+}
+```
+이는 HashSet에 여러 객체를 저장하였고, 중복되는 값들을 추가하지 않도록 하였다. 이 때 "abc"의 경우 문자열 리터럴이기에 문자열 내용이 같으면 같은 값으로 판단하므로 중복으로 추가되지 않는다.
+다만 Person 클래스의 경우 사용자가 만든 클래스이기에 인스턴스를 비교하기 위한 기준이 마련되어 있지 않다. HashSet의 add 메서드는 **새로운 요소를 추가하기 전에 기존의 요소와
+같은 것인지 판단하기 위해 `equals()`와 `hashcode()`를 호출한다.** 따라서 이 두 메서드에 대한 오버라이딩을 통해 인스턴스가 어떠한 조건에서 같은지 정의해야 한다.
+
+이처럼 `equals()`와 `hashCode`는 Object 메서드로 얼마든지 오버 라이딩이 가능하다. 이 둘은 인스턴스를 비교하기 위해 하나의 묶음으로 존재하며, String이나 Integer 등등 자바 API 클래스들은
+저 두 메서드가 알맞게 구현되어 있다.
+
+```java
+  Iterator it = setB.iterator();
+  while (it.hasNext()) {
+      Object tmp = it.next();
+      if (setA.contains(tmp)) {
+          setKyo.add(tmp);
+      }
+  }
+```
+**Set 인터페이스는 Iterator를 사용하여 해당 요소를 순회할 수 있다. 이는 컬렉션에서 요소를 탐색하는 방법을 표준화한 것이다.**
 
 
 

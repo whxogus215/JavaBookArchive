@@ -382,6 +382,29 @@ TreeSet은 **이진 탐색 트리 형태로 데이터를 저장하는 컬렉션 
 **컴퓨터는 트리에 들어가는 객체에 대한 대소 관계를 모른다. 따라서 트리에 저장되는 객체에 대한 Comparable 혹은 Comparator가 구현되어 있어야 한다.**
 객체를 비교할 방법을 제시하지 않으면 객체를 TreeSet에 저장할 때 **예외가 발생한다.**
 
+```java
+public class Ex11_14 {
+    public static void main(String[] args) {
+        TreeSet set = new TreeSet();
+
+        String from = "b";
+        String to = "d";
+
+        set.add("abc"); set.add("alien"); set.add("bat");
+        set.add("car"); set.add("Car"); set.add("disc");
+        set.add("dance"); set.add("dZZZZ"); set.add("dzzzz");
+        set.add("elephant"); set.add("elevator"); set.add("fan");
+        set.add("flower");
+
+        System.out.println(set);
+        System.out.println("range search : from " + from + " to " + to);
+        System.out.println("result1 : " + set.subSet(from, to));
+        System.out.println("result1 : " + set.subSet(from, to + "zzzzz"));
+    }
+}
+```
+TreeSet에 데이터를 넣을 경우, sort 메서드를 사용하지 않아도 알아서 오름차순으로 정렬된다. 문자열이라면 아스키 코드 값을 기준으로 오름차순 정렬된다.
+
 
 
 

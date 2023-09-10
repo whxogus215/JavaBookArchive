@@ -14,6 +14,8 @@
 - [HashSet](#HashSet)
   - [equals()와 hashCode()](#equals--와-hashCode--)
 - [TreeSet과 이진탐색트리](#TreeSet과-이진탐색트리)
+- [HashMap과 Hashtable](#HashMap과-Hashtable)
+  - [Collection의 최대값 및 최소값 구하는 방법](#Collection의-최대값-및-최소값-구하는-방법) 
 
 
 
@@ -405,6 +407,62 @@ public class Ex11_14 {
 ```
 TreeSet에 데이터를 넣을 경우, sort 메서드를 사용하지 않아도 알아서 오름차순으로 정렬된다. 문자열이라면 아스키 코드 값을 기준으로 오름차순 정렬된다.
 
+## HashMap과 Hashtable
+HashMap은 Map을 구현한 컬렉션 클래스이다. 따라서 Map과 같은 형태인 **Key-Value 형태로 구성되어 있다.** Key와 Value를 묶어서 하나의 **엔트리(entry)**라고 한다.
+또한 HashMap은 **해싱 기술을 사용하기 때문에 검색 성능이 매우 뛰어나다.** 
 
+```java
+static class Node<K,V> implements Map.Entry<K,V> {
+        final int hash;
+        final K key;
+        V value;
+        Node<K,V> next;
+
+        Node(int hash, K key, V value, Node<K,V> next) {
+            this.hash = hash;
+            this.key = key;
+            this.value = value;
+            this.next = next;
+        }
+
+        public final K getKey()        { return key; }
+        public final V getValue()      { return value; }
+        public final String toString() { return key + "=" + value; }
+
+        public final int hashCode() {
+            return Objects.hashCode(key) ^ Objects.hashCode(value);
+        }
+
+        public final V setValue(V newValue) {
+            V oldValue = value;
+            value = newValue;
+            return oldValue;
+        }
+
+        public final boolean equals(Object o) {
+            if (o == this)
+                return true;
+
+            return o instanceof Map.Entry<?, ?> e
+                    && Objects.equals(key, e.getKey())
+                    && Objects.equals(value, e.getValue());
+        }
+    }
+```
+JDK 17 기준, Key와 Value를 저장하는 **Node라는 내부 클래스를 통해 데이터를 저장하고 있다. 이는 Entry를 구현하였다.**
+
+Key는 저장된 값을 사용해야 하기 때문에 **유일해야 한다.** 반면에 Value는 중복을 허용한다.
+예를 들어, 사용자 ID를 Key, 비밀번호를 Value로 저장할 경우 하나의 ID는 하나의 비밀번호만 가져야 한다. 같은 ID가 여러 개 있다면 정확한 데이터를 찾을 수 없기 때문이다.
+같은 Key에 대해서 여러 번 값을 저장할 수 있다. **다만 하나의 Key는 하나의 Value만 가져야 하기 때문에 제일 마지막에 저장된 Value가 반영된다.**
+> Hashtable은 HashMap의 등장으로 거의 쓰이지 않는 클래스이다. 마치 ArrayList의 등장으로 Vector 클래스가 사용되지 않는 것과 같다.
+> Hashtable은 key나 value로 Null을 허용하지 않는다. 하지만 HashMap은 Null 값을 허용한다.
+
+### Collection의 최대값 및 최소값 구하는 방법
+```java
+  Collection values = map.values();
+
+  System.out.println("최고 점수 : " + Collections.max(values));
+  System.out.println("최저 점수 : " + Collections.min(values));
+```
 
 

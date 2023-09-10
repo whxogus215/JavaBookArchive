@@ -15,7 +15,12 @@
   - [equals()와 hashCode()](#equals--와-hashCode--)
 - [TreeSet과 이진탐색트리](#TreeSet과-이진탐색트리)
 - [HashMap과 Hashtable](#HashMap과-Hashtable)
-  - [Collection의 최대값 및 최소값 구하는 방법](#Collection의-최대값-및-최소값-구하는-방법) 
+  - [Collection의 최대값 및 최소값 구하는 방법](#Collection의-최대값-및-최소값-구하는-방법)
+- [Collections 메서드 정리](#Collections-메서드-정리)
+  - [컬렉션 동기화](#컬렉션-동기화)
+  - [읽기전용 컬렉션](#읽기전용-컬렉션)
+  - [싱글톤 컬렉션 만들기](#싱글톤-컬렉션-만들기)
+  - [한 종류의 객체만 저장](#한-종류의-객체만-저장)
 
 
 
@@ -464,5 +469,65 @@ Key는 저장된 값을 사용해야 하기 때문에 **유일해야 한다.** �
   System.out.println("최고 점수 : " + Collections.max(values));
   System.out.println("최저 점수 : " + Collections.min(values));
 ```
+Collection 클래스를 위한 유용한 메서드를 제공하는 **Collections 클래스를 활용하면 된다.**
 
+## Collections 메서드 정리
+Arrays가 배열과 관련된 메서드를 제공하는 것처럼, **Collections는 컬렉션과 관련도니 메서드를 제공한다.** Collection은 인터페이스이고, Collections는 Collection과 관련된 메서드를
+제공하는 클래스이다.
 
+### 컬렉션 동기화
+멀티 쓰레드 프로그래밍에서는 하나의 객체를 여러 쓰데르가 동시에 접근할 수 있기 때문에 데이터의 무결성을 유지하기 위해서는 **동기화**가 필요하다.
+Vector, HashTable 같은 구버전 클래스는 자체적으로 동기화가 되어 있다. 하지만 멀티 쓰레드 프로그래밍이 아닌 경우 이는 되려 성능을 떨어뜨린다.
+따라서 ArrayList나 HashMap 등은 동기화가 되어 있지 않으므로 Collections의 메서드를 통해 동기화 된 컬렉션을 사용할 수 있다.
+
+```java
+static Collection synchronizedCollection(Collection c)
+static <T> Set<T> synchronizedSet(Set<T> s)
+...
+```
+이처럼 매개변수로 컬렉션을 대입하면 동기화된 컬렉션을 반환한다. **동기화 된 컬렉션 클래스는 Collections 클래스 내에서 확인할 수 있다.**
+
+### 읽기전용 컬렉션
+컬렉션에 저장된 데이터를 보호하고 컬렉션 내 데이터가 변경되지 않도록 **읽기전용**으로 만들어야 한다면 `unmodifiable`이 붙은 메서드를 활용하면 된다.
+그러면 데이터를 수정할 수 없는 컬렉션을 제공한다.
+
+```java
+static Collection unmodifiableCollection(Collection c)
+static <T> Set<T> unmodifiableSet(Set<T> s)
+...
+```
+```java
+List list = new ArrayList<>();
+list.add(1);
+
+List list1 = Collections.unmodifiableList(list);
+list1.add(2);
+
+/// java.lang.UnsupportedOperationException 예외 발생
+```
+
+### 싱글톤 컬렉션 만들기
+단 하나의 객체(싱글톤)만을 저장해야 할 경우 `singleton`이 붙은 메서드를 활용한다. 매개변수로 저장할 요소를 지정하면, 해당 요소를 저장하는 컬렉션을 만든다.
+그리고 반환된 컬렉션은 **변경할 수 없다.**
+
+```java
+static List singletonList(Object o)
+static Set singleton(Object o)
+static Map singletonMap(Object Key, Object Value)
+...
+```
+해당 클래스를 들어갔을 때 수정, 삭제 등 변경과 관련된 메서드를 오버라이딩한 것을 확인할 수 있다. 이 때 해당 메서드가 실행되면
+`UnsupportedOperationException`라는 예외 클래스를 생성시킨다.
+
+### 한 종류의 객체만 저장
+컬렉션은 모든 타입의 객체를 저장할 수 있다는 장점이 있지만 이는 단점이 될 수도 있다. 따라서 컬렉션에 저장되는 객체를 지정할 수 있다.
+`checked`가 붙은 메서드를 활용한다.
+
+```java
+static Collection checkedCollection9Collection c, Class type)
+static List checkedList(List list, Class type)
+...
+```
+컬렉션 객체와 함께 지정할 클래스를 같이 넣어주면 된다.
+> 컬렉션에 저장할 요소의 타입을 제한하는 것은 **지네릭스**로 간단히 처리할 수 있다. 그럼에도 해당 메서드들이 있는 이유는 호환성 때문이다.
+> JDK1.5부터 지네릭스가 도입되었기 때문에 그 이전 버전의 코드를 사용할 경우 checked 메서드를 써야할 수 있다.

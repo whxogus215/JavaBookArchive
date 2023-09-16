@@ -5,6 +5,9 @@
 - [타입 변수](#타입-변수)
 - [지네릭스 용어 정리](#지네릭스-용어-정리)
 - [지네릭 타입 일치와 다형성](#지네릭-타입-일치와-다형성)
+- [Iterator<E>](#Iterator<E>)
+- [Hashmap<K,V>](#Hashmap<K,V>)
+- [지네릭 클래스를 제한하는 방법 : T extends ](#지네릭-클래스를-제한하는-방법)
   
 
 
@@ -119,4 +122,119 @@ public class Practice1 {
 class Product {}
 class Tv extends Product {}
 class Audio extends Product {}
+```
+
+### Iterator<E>
+Iterator<E>는 기존의 이터레이터 인터페이스에 지네릭이 적용된 형태이다. 기존의 이터레이터는 Object로 되어 있었으며, `it.next()`를 통해 접근할 때도 Object가 반환되기 때문에 매번
+형변환을 했어야 했다. 하지만 지네릭이 적용됨으로써 지정한 매개변수 타입이 반환된다.
+
+```java
+public class Ex12_2 {
+    public static void main(String[] args) {
+        ArrayList<Student> list = new ArrayList<Student>();
+        list.add(new Student("자바왕", 1, 1));
+        list.add(new Student("자바짱", 1, 2));
+        list.add(new Student("홍길동", 2, 1));
+
+        Iterator<Student> it = list.iterator();
+        while (it.hasNext()) {
+            // Student s = (Student)it.next(); // 지네릭을 사용하지 않았을 때는 형변환을 해야 했다.
+            Student s = it.next();
+            System.out.println(s.name);
+        }
+    }
+}
+
+class Student {
+    String name ="";
+    int ban;
+    int no;
+
+    public Student(String name, int ban, int no) {
+        this.name = name;
+        this.ban = ban;
+        this.no = no;
+    }
+}
+```
+
+### Hashmap<K,V>
+HashMap과 같이 Key-Value 형태로 데이터를 저장하는 컬렉션의 경우, 지정해야 할 매개변수 타입이 2개가 된다. 이 때는 콤마를 통해 구분하여 두 가지 매개변수를 지정할 수 있다. 두 개가 아닌 세 개 이상일 때도 마찬가지이다.
+```java
+public class HashMap<K, V> extends AbstractMap<K, V> {
+  public V get(Object key) {}
+  public V put(K key, V value) {}
+  public V remove(Object key) {}
+}
+```
+이처럼 지네릭을 사용함으로써 HashMap의 경우, 값을 꺼내오는 `get()`이나 `keySet()`,`values()`를 사용할 때도 마찬가지로 형변환을 하지 않아도 된다.
+
+### 지네릭 클래스를 제한하는 방법
+지네릭을 통해 타입을 지정하면 한 종류의 타입만 저장할 수 있도록 제한할 수 있다. 하지만 어쨌든 한 가지가 들어오지만 그 한 가지는 어떤 타입이든 될 수 있는 것이다. 따라서 타입 매개변수에 올 수 있는
+타입의 종류를 **제한할 수 있다면 좀 더 안정적인 클래스 작성이 가능할 것이다.**
+
+```java
+FruitBox<Toy> fruitBox = new FruitBox<Toy>();
+fruitBox.add(new Toy()); // 문제 없음 - 과일 상자에 장난감을 담을 수 있다.
+```
+이처럼 지네릭을 통해 모든 타입을 지정할 수 있다는 특성으로 인해 **논리적 오류가 발생할 수 있다.** 클래스를 작성할 때 `class FruitBox<T> {}`라고 해버리면 위처럼
+논리적으로 맞지 않은 타입이 들어오더라도 코드 상으로는 문제가 없으며 정상적으로 실행이 된다.
+
+```java
+class FruitBox<T extends Fruit> { // Fruit을 상속한 클래스만 들어올 수 있도록 제한! (Fruit 클래스도 포함)
+  ArrayList<T> list = new ArrayList<T>();
+}
+```
+이렇게하면 역시 한 종류의 타입만 받을 수 있게 된다. 하지만 이전과 같이 과일 상자에 장난감을 담는 논리적 오류를 피할 수 있다. 만약, 인터페이스를 구현한 클래스로 제한한다면
+이 때도 마찬가지로 **extends를 사용한다. 인터페이스라고 해서 implements를 사용하지 않는다.**
+
+```java
+interface Eatable {]
+class FruitBox<T extends Eatable> {...}
+
+// 상속과 인터페이스 구현으로 제한할 경우 : 둘 다 extends로 제한하기 때문에 &로 묶을 수 있다.
+class FruitBox<T extends Fruit & Eatable> {...}
+```
+```java
+class Fruit implements Eatable {
+    public String toString() {return "Fruit";}
+}
+
+class Apple extends Fruit { public String toString() { return "Apple";}}
+class Grape extends Fruit { public String toString() { return "Grape";}}
+
+class PineApple extends Apple {}
+class Toy { public String toString() { return "Toy";}}
+
+interface Eatable {}
+
+public class Ex12_3 {
+    public static void main(String[] args) {
+        // Fruit을 상속한 클래스들만 들어올 수 있으며, 마찬가지로 한 가지의 종류만 들어올 수 있다.
+        FruitBox<Fruit> fruitBox = new FruitBox<Fruit>();
+        FruitBox<Apple> appleBox = new FruitBox<Apple>();
+        FruitBox<Grape> grapeBOx = new FruitBox<Grape>();
+        // FruitBox<Toy> toyBox = new FruitBox<Toy>(); // 에러 발생 : Toy는 Fruit을 상속받지 않는다.
+
+        // FruitBox<Fruit>은 Fruit을 구현한 클래스들이 들어올 수 있다.
+        fruitBox.add(new Fruit());
+        fruitBox.add(new Apple());
+        fruitBox.add(new Grape());
+
+        appleBox.add(new Apple());
+        // appleBox.add(new Grape()); // FruitBox<Apple>은 Apple 클래스 혹은 Apple을 구현한 클래스만 가능하다.
+        appleBox.add(new PineApple()); // Apple을 상속받은 파인애플은 가능하다.
+
+    }
+}
+
+class FruitBox<T extends Fruit & Eatable> extends Box<T> {}
+
+class Box<T> {
+    ArrayList<T> list = new ArrayList<T>();
+    void add(T item) { list.add(item);}
+    T get(int i) { return list.get(i);}
+    int size() { return list.size();}
+    public String toString() { return list.toString();}
+}
 ```

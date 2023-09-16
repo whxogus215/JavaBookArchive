@@ -13,6 +13,7 @@
 - [Comparator와 Comparable](#Comparator와-Comparable)
 - [HashSet](#HashSet)
   - [equals()와 hashCode()](#equals--와-hashCode--)
+  - [HashSet에 데이터가 저장되는 원리](#HashSet에-데이터가-저장되는-원리)
 - [TreeSet과 이진탐색트리](#TreeSet과-이진탐색트리)
 - [HashMap과 Hashtable](#HashMap과-Hashtable)
   - [Collection의 최대값 및 최소값 구하는 방법](#Collection의-최대값-및-최소값-구하는-방법)
@@ -371,6 +372,46 @@ class Person {
   }
 ```
 **Set 인터페이스는 Iterator를 사용하여 해당 요소를 순회할 수 있다. 이는 컬렉션에서 요소를 탐색하는 방법을 표준화한 것이다.**
+
+### HashSet에 데이터가 저장되는 원리
+HashSet은 중복 데이터를 허용하지 않는다는 특징이 있다. **또 하나의 특징은 해싱 기술을 통해 데이터가 저장될 위치를 결정한다.** 즉, **hashCode()의 반환 값이 같으면 같은 위치에 값이 저장된다. Set이
+데이터가 저장되는 순서가 유지되지 않는 이유도 이에 해당한다. 값을 순서대로 저장해도 값들이 저장되는 위치가 정해져 있기 때문에 저장순서대로 저장되지 않는 것이다. 따라서 HashSet이 저장순서를 유지할 수 없는 것이다.** 만약 중복은 허용하지 안되, 값의 위치가 섞이도록 하기 위해서는 Set과 List를 같이 사용해야 한다. Set을 통해 중복 데이터를 막고, List로 저장되는 순서를 유지하도록 하면 무작위로 요소를
+섞었을 때 잘 섞이게 된다.
+
+```java
+public class Exercise11_6 {
+    public static void main(String[] args) {
+        Set set = new HashSet();
+        int[][] board = new int[5][5];
+
+        for (int i = 0; set.size() < 25; i++) {
+            set.add((int) (Math.random() * 30) + 1 + ""); // 랜덤번호를 문자열로 저장
+        }
+
+        // List 생성자 안에 Set을 넣음으로써 Set의 요소를 갖는 List를 만들 수 있다 - Collection 클래스들의 장점 중 하나(호환 Good)
+        List list = new ArrayList<>(set);
+
+        // Collections 클래스는 Collection 요소들에 관련된 유틸리티 함수를 제공한다. (배열에서는 Arrays가 담당)
+        Collections.shuffle(list);
+        Iterator it = list.iterator();
+
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[i].length; j++) {
+                board[i][j] = Integer.parseInt((String) it.next());
+                System.out.println(board[i][j]);
+            }
+            System.out.println();
+        }
+        
+    }
+}
+
+/**
+ * HashSet은 hashCode()의 값으로 저장위치를 계산한다. 따라서 인덱스가 없고, 저장 순서가 유지되지 않는 것
+ * 즉, 같은 값은 계속 같은 위치에 저장되는 것이다.
+ */
+```
+
 
 ## TreeSet과 이진탐색트리
 ![image](https://github.com/whxogus215/JavaBookArchive/assets/70999462/9ae9bc5f-8d06-4f11-88fa-441d8f555c0e)

@@ -8,6 +8,7 @@
 - [Iterator<E>](#Iterator<E>)
 - [Hashmap<K,V>](#Hashmap<K,V>)
 - [지네릭 클래스를 제한하는 방법 : T extends ](#지네릭-클래스를-제한하는-방법)
+- [지네릭스의 제약](#지네릭스의의-제약)
   
 
 
@@ -238,3 +239,93 @@ class Box<T> {
     public String toString() { return list.toString();}
 }
 ```
+
+### 지네릭스의 제약
+static 멤버는 모든 객체에 동일하게 동작해야 한다. 따라서 **static 멤버에는 타입 변수(T)를 사용할 수 없다.** 타입 변수가 사용되는 것은 인스턴스가 생성되는 시점에서 결정되기 때문에
+인스턴스 변수로 간주된다. 따라서 static 멤버에는 사용될 수 없다. (static 멤버는 인스턴스 변수를 참조할 수 없다.)
+
+```java
+class Box<T> {
+  static T item; // 에러
+  static int compare(T t1, T t2) {...} // 에러
+}
+```
+static인 경우에만 사용이 안되는 것이다 일반적인 멤버에는 사용이 가능하다!
+
+또한 지네릭은 배열 생성자로도 사용될 수 없다.
+```java
+class Box<T> {
+  T[] itemArr; // 가능, T타입의 배열을 위한 참조변수로는 사용이 가능하다.
+  T[] toArray() {
+    T[] tmpArr = new T[itemArr.length]; // 에러, 배열 생성용으로는 사용이 안된다.  
+  }
+}
+```
+new 연산자를 사용하게 되면, 이는 컴파일 시점에서 이 T가 뭔지 정확히 알아야 한다. 하지만 컴파일 시점에서 위 T의 타입이 뭔지 알 수 없다. 따라서 에러가 발생한다.
+
+### 와일드 카드
+지네릭 클래스를 생성할 때, 참조변수 타입과 생성자 타입은 일치해야 한다. **지네릭 타입에 다형성을 적용하기 위해서는 와일드 카드인 ?를 사용한다.**
+1. <? extends T> : 와일드 카드의 **상한 제한**. T와 그 자손들만 올 수 있다.
+2. <? super T> : 와일드 카드의 **하한 제한**. T와 그 조상들만 올 수 있다.
+3. <?> : 제한 없이 모든 타입이 가능하다. <? extends Object>와 동일하다.
+
+**와일드 카드를 사용하면 하나의 참조변수로 다른 지네릭 타입이 지정된 객체를 참조할 수 있다.**
+```java
+ArrayList<? extends Product> list = new ArrayList<Tv>(); // Tv extends Product
+ArrayList<? extends Product> list = new ArrayList<Audio>(); // Audio extends Product
+```
+
+```java
+class Fruit2 { public String toString() {return "Fruit";}}
+
+class Apple2 extends Fruit2 { public String toString() { return "Apple";}}
+class Grape2 extends Fruit2 { public String toString() { return "Grape";}}
+
+class Juice {
+    String name;
+
+    Juice(String name) { this.name = name + "Juice";}
+    public String toString() {return name;}
+}
+
+class Juicer {
+    // 와일드 카드가 적용됨으로써 Fruit2를 상속한 매개변수 타입을 저장하는 FruitBox2 타입은 모두 들어올 수 있게 되었다.
+    static Juice makeJuice(FruitBox2<? extends Fruit2> box){
+        String temp = "";
+
+        for(Fruit2 f : box.getList())
+            temp += f + " ";
+        return new Juice(temp);
+    }
+}
+
+public class Ex12_4 {
+    public static void main(String[] args) {
+        FruitBox2<Fruit2> fruitBox = new FruitBox2<Fruit2>();
+        FruitBox2<Apple2> appleBox = new FruitBox2<Apple2>();
+
+        fruitBox.add(new Apple2());
+        fruitBox.add(new Grape2());
+        appleBox.add(new Apple2());
+        appleBox.add(new Apple2());
+
+        System.out.println(Juicer.makeJuice(fruitBox));
+        System.out.println(Juicer.makeJuice(appleBox));
+    }
+}
+
+class FruitBox2<T extends Fruit2> extends Box2<T> {}
+
+class Box2<T> {
+    ArrayList<T> list = new ArrayList<T>();
+    void add(T item) { list.add(item);}
+    T get(int i) { return list.get(i);}
+    int size() { return list.size();}
+    ArrayList<T> getList() {return list; }
+    public String toString() { return list.toString();}
+}
+```
+
+### T extends와 ? extends의 차이점
+- T extends A : A라는 클래스를 상속받은 타입이 들어올 수 있다. **다만 이 때 들어올 수 있는 클래스의 종류는 한 가지다.**
+- ? extends A : A라는 클래스를 상속받은 타입이 들어올 수 있다. **다만 이 때 들어올 수 있는 클래스는 A를 상속받은 클래스면 다 들어올 수 있다.** 

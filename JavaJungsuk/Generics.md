@@ -349,3 +349,18 @@ class Box2<T> {
 지네릭 메서드는 **static 멤버에서도 사용이 가능하다.** 왜냐하면 메서드에서 사용되는 지네릭 매개변수는 메서드 내에서만 사용되는 일종의 **지역 변수** 같은 것이다.
 즉, 메서드 호출 시점에서 T의 타입이 결정되기 때문에 실행에 문제가 없다.
 
+**지네릭 메서드는 메서드 선언부로부터 타입을 지정받을 수 있고, 지정된 타입이 해당 메서드의 모든 타입 매개변수 T에 적용된다.**
+```java
+  public static <T extends Product> ArrayList<T> merge(
+            ArrayList<T> list, ArrayList<T> list2) {
+        ArrayList<T> newList = new ArrayList<>(list);
+
+        newList.addAll(list2);
+
+        return newList;
+    }
+```
+해당 메서드를 사용할 때, `<Tv>merge(new ArrayList<Tv> list1, new ArrayList<Tv> list2);` 이런 식으로 매개변수 타입을 결정하게 된다.
+**즉, 지네릭 메서드의 선언부를 통해 타입을 입력받으면 메서드 내부에서는 입력받은 타입으로 형변환되어 동작하게 된다.**
+
+> 지네릭 타입은 컴파일러에 의해 생긴 .class 파일에서 삭제된다. 즉, 입력받은 타입으로 형변환된 코드로 변경된다.

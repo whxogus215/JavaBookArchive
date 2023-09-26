@@ -80,5 +80,64 @@ try-catch문에서 예외가 발생한 경우와 발생하지 않았을 때 흐�
 catch 블럭은 `()`와 `{}`로 나누어져 있다. 소괄호 내에는 처리하고자 하는 예외 타입의 참조 변수를 선언해야 한다. **예외가 발생할 경우, 해당 예외에 해당하는 클래스의 인스턴스가 자동으로 생성된다.**
 이 때, try 블럭 내에서 예외가 발생한 것이라면 해당하는 catch 블럭을 찾게 된다.
 
-알맞는 catch 블럭을 찾는 방법은 `instanceof 연산자`를 활용하는 것이다. catch 블럭에 선언된 예외클래스 참조변수와 instanceof 연산을 한 다음 true가 나오면 해당 블럭을 수행한다.
+알맞는 catch 블럭을 찾는 방법은 `instanceof 연산자`를 활용하는 것이다. catch 블럭에 선언된 예외클래스와 instanceof 연산을 한 다음 true가 나오면 해당 블럭을 수행한다.
 true가 하나도 나오지 않으면 예외는 처리되지 않는다.
+
+```java
+public class Ex8_3 {
+    public static void main(String[] args) {
+        System.out.println(1);
+        System.out.println(2);
+        
+        try {
+            System.out.println(3);
+            System.out.println(0 / 0); // ArithmeticException 발생
+            System.out.println(4);
+        } catch (Exception e) {
+            System.out.println("에러 처리됨.");
+        }
+
+        System.out.println("프로그램 종료");
+    }
+}
+
+1
+2
+3
+에러 처리됨.
+프로그램 종료
+```
+이처럼 `ArithmeticException`이 발생하지만 조상 클래스인 Exception을 통해서 처리가 가능하다. **그 이유는 `System.out.println(0 / 0);`로 인해 생성된 `ArithmeticException` 인스턴스가
+catch 블럭에 있는 `Exception` 클래스와의 `instanceof` 연산을 한 결과 true이기 때문에 가능한 것이다.**
+
+```java
+public class Ex8_3 {
+    public static void main(String[] args) {
+        System.out.println(1);
+        System.out.println(2);
+
+        try {
+            System.out.println(3);
+            System.out.println(0 / 0);
+            System.out.println(4);
+        } catch (ArithmeticException arithmeticException) {
+            System.out.println("Arith 예외 처리");
+        } catch (Exception e) {
+            System.out.println("에러 처리됨.");
+        }
+
+        System.out.println("프로그램 종료");
+    }
+}
+
+1
+2
+3
+Arith 예외 처리
+프로그램 종료
+```
+이처럼 `ArithmeticException` catch 블럭을 먼저 놓을 경우, Exception 블럭은 실행되지 않는다. 따라서 Exception 예외를 통한 catch 블럭을 사용하면 위에서부터 구체적인 예외 처리가 다 이루어지고
+난 뒤에 명시되지 않은 **나머지 예외 대해 일괄적으로 처리할 수 있게 된다.**
+
+만약, 위 코드에서 두 catch 블럭의 순서를 뒤집으면 컴파일 에러가 발생한다. 왜냐하면 Exception 블럭이 위에 있기 때문에 모든게 다 거기에서 해결된다. 밑에 있는 `ArithmeticException`는 이미 처리된 시점에서
+굳이 또 쓸 필요가 없는 것이다. **따라서 Exception 블럭은 맨 마지막에 사용해야 한다.**
